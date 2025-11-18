@@ -209,3 +209,39 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+document.addEventListener('DOMContentLoaded', () => {
+    // ... Existing variable definitions ...
+    const exportPdfBtn = document.getElementById('export-pdf-btn'); // NEW: Get the button
+
+    // ... (Keep existing history loading, voice interaction, clear chat logic) ...
+    
+    // --- NEW: PDF Export Functionality ---
+    if (exportPdfBtn) {
+        exportPdfBtn.addEventListener('click', exportChatToPDF);
+    }
+
+    function exportChatToPDF() {
+        const element = document.getElementById('chat-box');
+        
+        // Configuration for the PDF output
+        const opt = {
+            margin: 10,
+            filename: 'ChangeAssistant_ChatHistory.pdf',
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, logging: true, dpi: 192, letterRendering: true },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        // Call the html2pdf library
+        // We clone the element first to ensure any running animations or spinners don't get captured
+        html2pdf().set(opt).from(element).save();
+
+        // Optional: Provide quick visual feedback on the button itself
+        exportPdfBtn.innerHTML = '✅';
+        setTimeout(() => {
+            exportPdfBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>`;
+        }, 2000);
+    }
+
+    // ... (Keep all other existing functions and logic here, including addMessage, chatForm.addEventListener, sendFeedback, etc.) ...
+});

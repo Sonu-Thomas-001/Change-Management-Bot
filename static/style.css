@@ -280,3 +280,19 @@ body {
     100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
 }
 
+/* Find the .header-actions CSS block (around line 52) and replace or add this selector: */
+
+/* Style for the new PDF Export button */
+#export-pdf-btn {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    opacity: 0.8;
+    transition: opacity 0.2s;
+    padding: 0; /* Ensures the button sits neatly next to the others */
+    margin: 0;
+}
+#export-pdf-btn:hover { opacity: 1; }
+
+/* ... Rest of your .header-actions and other CSS remains the same ... */
