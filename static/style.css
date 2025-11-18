@@ -17,10 +17,9 @@ body {
 }
 
 .chat-container {
-    /* CHANGED: Now takes full width on mobile, up to 95% on desktop */
     width: 100%;
-    max-width: 1200px; /* Increased from 600px to let tables breathe */
-    height: 100vh;     /* Full height */
+    max-width: 1200px;
+    height: 100vh;
     background: var(--container-bg);
     display: flex;
     flex-direction: column;
@@ -28,7 +27,6 @@ body {
     box-shadow: 0 0 20px rgba(0,0,0,0.05);
 }
 
-/* Optional: Add a slight margin on larger screens so it's not glued to edges */
 @media (min-width: 768px) {
     .chat-container {
         height: 95vh;
@@ -41,7 +39,7 @@ body {
     background: var(--primary-color);
     color: white;
     padding: 15px 20px;
-    flex-shrink: 0; /* Prevents header from shrinking */
+    flex-shrink: 0;
 }
 
 .header-content {
@@ -83,25 +81,95 @@ body {
     scroll-behavior: smooth;
 }
 
+/* --- MESSAGE BUBBLES --- */
 .chat-message {
-    max-width: 85%; /* Let bubbles be wider */
+    max-width: 85%;
     padding: 15px 20px;
     border-radius: 15px;
     line-height: 1.6;
-    position: relative;
+    position: relative; /* Crucial for positioning buttons */
     font-size: 1rem;
-    word-wrap: break-word; /* Prevents long text from breaking layout */
+    word-wrap: break-word;
+    /* Padding right creates space for the permanent buttons */
+    padding-right: 45px; 
 }
 
 .chat-message.bot { background: var(--bot-bg); align-self: flex-start; color: #333; border-bottom-left-radius: 4px; }
 .chat-message.user { background: var(--user-bg); align-self: flex-end; color: white; border-bottom-right-radius: 4px; }
 
-/* --- RESPONSIVE TABLE STYLING (The Fix) --- */
+/* --- COPY & EDIT BUTTONS (Permanently Visible) --- */
+.message-actions {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    display: flex;
+    gap: 5px;
+    /* UPDATED: Always visible, slight transparency until hovered */
+    opacity: 0.7; 
+    transition: opacity 0.2s ease-in-out;
+    z-index: 10;
+}
+
+/* Brighten buttons when hovering specifically over the buttons */
+.message-actions:hover {
+    opacity: 1;
+}
+
+.action-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: inherit;
+    transition: background 0.2s;
+}
+
+.action-btn:hover {
+    background: rgba(0,0,0,0.1); /* Subtle background on hover */
+}
+
+/* Icon colors */
+.chat-message.user .action-btn { color: rgba(255,255,255, 0.95); }
+.chat-message.bot .action-btn { color: #666; }
+
+.action-btn svg {
+    width: 16px;
+    height: 16px;
+}
+
+/* "Copied!" Tooltip */
+.copy-feedback {
+    position: absolute;
+    top: -25px;
+    right: 0;
+    background: #333;
+    color: white;
+    font-size: 0.75rem;
+    padding: 4px 8px;
+    border-radius: 4px;
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+    white-space: nowrap;
+}
+.copy-feedback.show { opacity: 1; }
+
+
+/* --- MARKDOWN & TABLE STYLES --- */
+.chat-message h3, .chat-message h4 { margin-top: 15px; margin-bottom: 10px; font-weight: 700; color: inherit; }
+.chat-message ul, .chat-message ol { padding-left: 20px; margin: 10px 0; }
+.chat-message li { margin-bottom: 5px; }
+.chat-message strong { font-weight: 700; }
+
 .chat-message table {
-    display: block;          /* Forces table to behave like a block */
-    width: 100%;             /* Full width of the bubble */
-    overflow-x: auto;        /* Adds horizontal scrollbar if needed */
-    -webkit-overflow-scrolling: touch; /* Smooth scrolling on mobile */
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
     border-collapse: collapse;
     margin-top: 15px;
     margin-bottom: 15px;
@@ -116,32 +184,19 @@ body {
     text-align: left;
     padding: 10px;
     border: 1px solid #ddd;
-    white-space: nowrap; /* Keeps headers on one line */
+    white-space: nowrap;
 }
 
 .chat-message td {
     padding: 10px;
     border: 1px solid #ddd;
-    min-width: 120px; /* Ensures columns don't get squished too small */
+    min-width: 120px;
 }
 
-/* Custom Scrollbar for the table */
-.chat-message table::-webkit-scrollbar {
-    height: 8px;
-}
-.chat-message table::-webkit-scrollbar-thumb {
-    background: #ccc;
-    border-radius: 4px;
-}
-.chat-message table::-webkit-scrollbar-track {
-    background: transparent;
-}
+.chat-message table::-webkit-scrollbar { height: 8px; }
+.chat-message table::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
+.chat-message table::-webkit-scrollbar-track { background: transparent; }
 
-/* --- MARKDOWN FORMATTING --- */
-.chat-message h3, .chat-message h4 { margin-top: 15px; margin-bottom: 10px; font-weight: 700; color: #222; }
-.chat-message ul, .chat-message ol { padding-left: 20px; margin: 10px 0; }
-.chat-message li { margin-bottom: 5px; }
-.chat-message strong { font-weight: 700; }
 
 /* --- FOOTER & INPUT --- */
 .chat-input { 
@@ -176,6 +231,7 @@ body {
 }
 .icon-btn:hover { background: #0056b3; }
 
+/* Feedback Buttons (Thumbs Up/Down) */
 .feedback-actions {
     margin-top: 10px;
     display: flex;
