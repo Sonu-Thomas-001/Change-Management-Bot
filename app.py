@@ -15,7 +15,8 @@ from dotenv import load_dotenv
 
 # --- Configuration ---
 load_dotenv()
-LOG_FILE = "query_logs.csv"
+# Using /tmp/ for cloud compatibility, change to local path if running locally only
+LOG_FILE = "query_logs.csv" 
 FEEDBACK_FILE = "feedback_logs.csv"
 
 if "GOOGLE_API_KEY" not in os.environ:
@@ -69,6 +70,8 @@ def initialize_rag_chain():
         embeddings = GoogleGenerativeAIEmbeddings(model="models/text-embedding-004")
         vectorstore = Chroma.from_documents(documents=docs, embedding=embeddings)
         retriever = vectorstore.as_retriever()
+        
+        # Using standard 1.5 flash model
         llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0.3)
 
         contextualize_q_system_prompt = (
@@ -88,7 +91,7 @@ def initialize_rag_chain():
             llm, retriever, contextualize_q_prompt
         )
 
-        # --- LOCKED PROMPT WITH GREETING HANDLING ---
+        # --- UPDATED PROMPT FOR RICH FORMATTING ---
         qa_system_prompt = (
             "You are the 'Change Management Assistant', a friendly and professional AI chatbot. "
             "Your primary purpose is to answer employee questions about the change management process based on the provided context. "
@@ -99,7 +102,11 @@ def initialize_rag_chain():
             "2.  **Identity:** If the user asks who you are, introduce yourself as the 'Change Management Assistant'.\n"
             "3.  **Knowledge-Based Questions:** For all other questions, answer based ONLY on the provided context below. Do not make up information.\n"
             "4.  **No Context:** If the answer is not in the context, say exactly: 'I'm sorry, I don't have information on that topic in my current knowledge base.'\n"
-            "5.  **Formatting:** Use clear bullet points and bold text for readability.\n\n"
+            "5.  **Formatting:** You must format your answers to be highly readable using Markdown:\n"
+            "    - Use **Headings** (###) to separate sections.\n"
+            "    - Use **Bold text** for key terms and important concepts.\n"
+            "    - Use **Bullet points** for lists and steps.\n"
+            "    - Use **Tables** when comparing data (like templates, roles, or timelines).\n\n"
 
             "--- PROVIDED CONTEXT ---\n"
             "<context>\n{context}\n</context>"
@@ -161,7 +168,6 @@ def feedback():
 
 @app.route('/analytics')
 def analytics():
-    # 1. Parse Query Logs
     logs = []
     unanswered_count = 0
     all_text = ""
@@ -181,7 +187,6 @@ def analytics():
         except Exception as e:
             print(f"Error reading query logs: {e}")
 
-    # 2. Parse Feedback Logs
     feedback_logs = []
     positive_fb = 0
     negative_fb = 0
@@ -200,7 +205,6 @@ def analytics():
         except Exception as e:
             print(f"Error reading feedback logs: {e}")
 
-    # 3. Keywords
     stop_words = {'what', 'is', 'the', 'how', 'to', 'a', 'an', 'of', 'in', 'for', 'template', 'change', 'does', 'can', 'i', 'give', 'me'}
     words = [w for w in all_text.split() if w not in stop_words and len(w) > 3]
     most_common_words = Counter(words).most_common(8)

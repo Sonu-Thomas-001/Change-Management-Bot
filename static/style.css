@@ -17,21 +17,31 @@ body {
 }
 
 .chat-container {
-    width: 90%;
-    max-width: 600px;
-    height: 90vh;
+    /* CHANGED: Now takes full width on mobile, up to 95% on desktop */
+    width: 100%;
+    max-width: 1200px; /* Increased from 600px to let tables breathe */
+    height: 100vh;     /* Full height */
     background: var(--container-bg);
-    border-radius: 16px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    box-shadow: 0 0 20px rgba(0,0,0,0.05);
+}
+
+/* Optional: Add a slight margin on larger screens so it's not glued to edges */
+@media (min-width: 768px) {
+    .chat-container {
+        height: 95vh;
+        width: 95%;
+        border-radius: 16px;
+    }
 }
 
 .chat-header {
     background: var(--primary-color);
     color: white;
     padding: 15px 20px;
+    flex-shrink: 0; /* Prevents header from shrinking */
 }
 
 .header-content {
@@ -49,7 +59,7 @@ body {
 .analytics-link {
     color: white;
     text-decoration: none;
-    font-size: 0.8rem;
+    font-size: 0.9rem;
     opacity: 0.9;
 }
 
@@ -70,29 +80,104 @@ body {
     display: flex;
     flex-direction: column;
     gap: 15px;
+    scroll-behavior: smooth;
 }
 
 .chat-message {
-    max-width: 80%;
-    padding: 12px 16px;
+    max-width: 85%; /* Let bubbles be wider */
+    padding: 15px 20px;
     border-radius: 15px;
-    line-height: 1.5;
+    line-height: 1.6;
     position: relative;
+    font-size: 1rem;
+    word-wrap: break-word; /* Prevents long text from breaking layout */
 }
 
 .chat-message.bot { background: var(--bot-bg); align-self: flex-start; color: #333; border-bottom-left-radius: 4px; }
 .chat-message.user { background: var(--user-bg); align-self: flex-end; color: white; border-bottom-right-radius: 4px; }
 
-/* Markdown Styles */
-.chat-message ul { padding-left: 20px; margin: 5px 0; }
-.chat-message p { margin: 0 0 5px 0; }
-.chat-message strong { font-weight: 600; }
-.chat-message table { width: 100%; border-collapse: collapse; font-size: 0.9em; margin-top: 10px; }
-.chat-message th, .chat-message td { border: 1px solid #ccc; padding: 5px; }
+/* --- RESPONSIVE TABLE STYLING (The Fix) --- */
+.chat-message table {
+    display: block;          /* Forces table to behave like a block */
+    width: 100%;             /* Full width of the bubble */
+    overflow-x: auto;        /* Adds horizontal scrollbar if needed */
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on mobile */
+    border-collapse: collapse;
+    margin-top: 15px;
+    margin-bottom: 15px;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 8px;
+    font-size: 0.9rem;
+}
 
-/* Feedback Actions */
+.chat-message th {
+    background-color: rgba(0, 0, 0, 0.05);
+    font-weight: 600;
+    text-align: left;
+    padding: 10px;
+    border: 1px solid #ddd;
+    white-space: nowrap; /* Keeps headers on one line */
+}
+
+.chat-message td {
+    padding: 10px;
+    border: 1px solid #ddd;
+    min-width: 120px; /* Ensures columns don't get squished too small */
+}
+
+/* Custom Scrollbar for the table */
+.chat-message table::-webkit-scrollbar {
+    height: 8px;
+}
+.chat-message table::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 4px;
+}
+.chat-message table::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+/* --- MARKDOWN FORMATTING --- */
+.chat-message h3, .chat-message h4 { margin-top: 15px; margin-bottom: 10px; font-weight: 700; color: #222; }
+.chat-message ul, .chat-message ol { padding-left: 20px; margin: 10px 0; }
+.chat-message li { margin-bottom: 5px; }
+.chat-message strong { font-weight: 700; }
+
+/* --- FOOTER & INPUT --- */
+.chat-input { 
+    padding: 20px; 
+    border-top: 1px solid #eee; 
+    background: white; 
+    flex-shrink: 0; 
+}
+.chat-input form { display: flex; gap: 10px; align-items: center; }
+.chat-input input { 
+    flex: 1; 
+    padding: 15px; 
+    border: 1px solid #ddd; 
+    border-radius: 30px; 
+    outline: none; 
+    font-size: 1rem;
+}
+
+.icon-btn {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: background 0.2s;
+    flex-shrink: 0;
+}
+.icon-btn:hover { background: #0056b3; }
+
 .feedback-actions {
-    margin-top: 5px;
+    margin-top: 10px;
     display: flex;
     gap: 10px;
     justify-content: flex-end;
@@ -101,39 +186,15 @@ body {
     background: none;
     border: none;
     cursor: pointer;
-    font-size: 1.1rem;
+    font-size: 1.2rem;
     opacity: 0.5;
     transition: opacity 0.2s, transform 0.1s;
 }
 .feedback-btn:hover { opacity: 1; transform: scale(1.1); }
 .feedback-btn.active { opacity: 1; transform: scale(1.1); }
 
-.chat-input { padding: 15px; border-top: 1px solid #eee; background: white; }
-.chat-input form { display: flex; gap: 10px; align-items: center; }
-.chat-input input { flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 25px; outline: none; }
-
-.icon-btn {
-    background: var(--primary-color);
-    color: white;
-    border: none;
-    border-radius: 50%;
-    width: 45px;
-    height: 45px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    cursor: pointer;
-    transition: background 0.2s;
-}
-.icon-btn:hover { background: #0056b3; }
-
-#mic-btn {
-    background: #6c757d; /* Grey when inactive */
-}
-#mic-btn.recording {
-    background: #dc3545; /* Red when recording */
-    animation: pulse 1.5s infinite;
-}
+#mic-btn { background: #6c757d; }
+#mic-btn.recording { background: #dc3545; animation: pulse 1.5s infinite; }
 
 @keyframes pulse {
     0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); }
