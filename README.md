@@ -43,7 +43,8 @@ By leveraging **Retrieval-Augmented Generation (RAG)**, it transforms static Sta
 * **Source Citation:** Cites the specific document used for every answer.
 
 ### 🛡️ **Security & RBAC**
-* **Role-Based Login:** * **Employees:** Access to Chat interface only.
+* **Role-Based Login:**
+    * **Employees:** Access to Chat interface only.
     * **Admins:** Access to Chat + Analytics Dashboard.
 * **Context-Aware Responses:** The AI adjusts its answer complexity based on the logged-in user's role.
 
@@ -60,30 +61,7 @@ By leveraging **Retrieval-Augmented Generation (RAG)**, it transforms static Sta
 * **Responsive Design:** Works seamlessly on Desktop and Mobile.
 
 ---
-
-## 🏗 Architecture
-
-```mermaid
-graph TD
-    User[User (Web UI)] <-->|HTTP/JSON| Flask[Flask Server]
-    Flask <-->|Auth| Session[Session Manager]
     
-    subgraph "RAG Engine"
-        Flask -->|Query| Chain[LangChain RAG]
-        Chain -->|Retrieve| Chroma[ChromaDB (Local)]
-        Chain -->|Generate| Gemini[Google Gemini API]
-    end
-    
-    subgraph "Data Pipeline"
-        PDF[SOP Documents] -->|Load & Split| Splitter
-        Splitter -->|Embed (Local)| Embed[HuggingFace Model]
-        Embed --> Chroma
-    end
-    
-    subgraph "Analytics"
-        Flask -->|Log| CSV[CSV Logs]
-        CSV --> Dashboard[Analytics View]
-    end
 🚀 Installation
 Prerequisites
 Python 3.10+
