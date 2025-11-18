@@ -1,106 +1,185 @@
-Change Management Assistant Chatbot 🤖
-This project is a fully functional, conversational AI chatbot designed to answer questions about a company's change management process. It uses a Retrieval-Augmented Generation (RAG) architecture with Google's Gemini Pro to provide accurate answers based on a custom knowledge base of PDF documents.
+<div align="center">
 
-The user interface is a clean, modern web-based chat window built with Flask, HTML, CSS, and JavaScript.
+  <h1>🤖 Change Management Assistant</h1>
+  
+  <p>
+    <strong>An Enterprise-Grade AI Chatbot for SOP Intelligence</strong>
+  </p>
 
-✨ Features
-Conversational Memory: The chatbot can understand the context of a conversation and answer follow-up questions.
+  <p>
+    <a href="#-overview">Overview</a> •
+    <a href="#-key-features">Features</a> •
+    <a href="#-architecture">Architecture</a> •
+    <a href="#-installation">Installation</a> •
+    <a href="#-usage-guide">Usage</a>
+  </p>
 
-Knowledge Base Integration: Easily add your own PDF documents (SOPs, FAQs, etc.) to the docs/ folder to create a custom knowledge base.
+  ![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)
+  ![Flask](https://img.shields.io/badge/Flask-Server-000000?style=for-the-badge&logo=flask&logoColor=white)
+  ![LangChain](https://img.shields.io/badge/LangChain-RAG-1C3C3C?style=for-the-badge&logo=chainlink&logoColor=white)
+  ![Gemini](https://img.shields.io/badge/Google%20Gemini-1.5%20Flash-8E75B2?style=for-the-badge&logo=google&logoColor=white)
+  ![ChromaDB](https://img.shields.io/badge/ChromaDB-Vector%20Store-FF5F00?style=for-the-badge)
 
-Accurate, Sourced Answers: Built on a RAG architecture to prevent the AI from making up information and ensure answers are based only on the provided documents.
+</div>
 
-Markdown Rendering: The UI correctly formats the AI's responses, displaying lists, bold text, and tables for better readability.
+---
 
-Friendly Personality: The chatbot is programmed to handle greetings and questions about itself in a friendly, conversational manner.
+## 📖 Overview
 
-Easy to Deploy: A simple, self-contained web application using Python and Flask.
+The **Change Management Assistant** is a secure, conversational AI tool designed to democratize access to complex organizational knowledge. 
 
-🛠️ Tech Stack
-Backend: Python, Flask
+By leveraging **Retrieval-Augmented Generation (RAG)**, it transforms static Standard Operating Procedure (SOP) documents into an interactive expert. Unlike standard search, it understands context, handles follow-up questions, and provides precise answers sourced **strictly** from approved documentation.
 
-AI & Machine Learning: LangChain, Google Gemini Pro (gemini-1.5-flash), ChromaDB (for vector storage)
+> **New in v2.0:** Now features Role-Based Access Control (RBAC), a full Analytics Dashboard, and Local Embeddings for enhanced privacy and speed.
 
-Frontend: HTML, CSS, JavaScript
+---
 
-UI Formatting: marked.js
+## ✨ Key Features
 
-📂 Project Structure
-The project uses a simple and organized folder structure:
+### 🧠 **AI & Intelligence**
+* **RAG Architecture:** Grounds answers in your specific PDF documents. Zero hallucinations.
+* **Local Embeddings:** Uses `HuggingFace` embeddings locally on your CPU. Fast, free, and private.
+* **Conversational Memory:** Remembers chat history for natural follow-up questions.
+* **Source Citation:** Cites the specific document used for every answer.
 
-/change-management-chatbot
-│
-├── app.py              # Main Python/Flask application
-├── README.md           # This file
-├── .env                # For storing your API key
-│
-├── templates/
-│   └── index.html      # Frontend user interface
-│
-├── static/
-│   ├── style.css       # Styling for your UI
-│   └── script.js       # JavaScript for interactivity
-│
-└── docs/
-    └── (Your SOP and other PDF files go here)
-🚀 Setup and Installation
-Follow these steps to get the chatbot running on your local machine.
+### 🛡️ **Security & RBAC**
+* **Role-Based Login:** * **Employees:** Access to Chat interface only.
+    * **Admins:** Access to Chat + Analytics Dashboard.
+* **Context-Aware Responses:** The AI adjusts its answer complexity based on the logged-in user's role.
+
+### 📊 **Analytics & Insights**
+* **Live Dashboard:** Visual trend charts of daily queries.
+* **Gap Analysis:** Automatically logs "Unanswered Questions" to identify holes in your SOPs.
+* **User Feedback:** Tracks "Thumbs Up/Down" ratings to measure satisfaction.
+* **Trend Spotting:** Word cloud analysis of most frequently asked topics.
+
+### 💻 **Modern UX/UI**
+* **Rich Formatting:** Markdown support (Tables, **Bold**, Lists).
+* **Voice Interaction:** Speech-to-Text integration for hands-free use.
+* **Productivity Tools:** One-click **PDF Export** of chat history, **Copy** response, and **Edit** query.
+* **Responsive Design:** Works seamlessly on Desktop and Mobile.
+
+---
+
+## 🏗 Architecture
+
+```mermaid
+graph TD
+    User[User (Web UI)] <-->|HTTP/JSON| Flask[Flask Server]
+    Flask <-->|Auth| Session[Session Manager]
+    
+    subgraph "RAG Engine"
+        Flask -->|Query| Chain[LangChain RAG]
+        Chain -->|Retrieve| Chroma[ChromaDB (Local)]
+        Chain -->|Generate| Gemini[Google Gemini API]
+    end
+    
+    subgraph "Data Pipeline"
+        PDF[SOP Documents] -->|Load & Split| Splitter
+        Splitter -->|Embed (Local)| Embed[HuggingFace Model]
+        Embed --> Chroma
+    end
+    
+    subgraph "Analytics"
+        Flask -->|Log| CSV[CSV Logs]
+        CSV --> Dashboard[Analytics View]
+    end
+🚀 Installation
+Prerequisites
+Python 3.10+
+
+A Google Gemini API Key (Get one here)
 
 1. Clone the Repository
-First, clone this project to your local machine (or simply create the project folder and files as described above).
-
 Bash
 
-git clone <your-repository-url>
-cd change-management-chatbot
-2. Set Up Your Google Gemini API Key
-You'll need a Google API key to use the Gemini model.
-
-Get your key from Google AI Studio.
-
-In the root directory of the project, create a file named .env.
-
-Add your API key to the .env file like this:
-
-GOOGLE_API_KEY="YOUR_GEMINI_API_KEY_HERE"
-3. Install Dependencies
-Install all the required Python packages using pip. It's recommended to do this within a virtual environment.
-
+git clone [https://github.com/YourUsername/Change-Management-Bot.git](https://github.com/YourUsername/Change-Management-Bot.git)
+cd Change-Management-Bot
+2. Set Up Virtual Environment
 Bash
 
-# Create and activate a virtual environment (optional but recommended)
+# Windows
 python -m venv venv
-source venv/bin/activate  # On Windows, use `venv\Scripts\activate`
+.\venv\Scripts\activate
 
-# Install packages
-pip install Flask langchain-google-genai langchain-community chromadb pypdf python-dotenv
-4. Add Your Knowledge Base
-Place your own change management SOPs, FAQs, or any other relevant documents in PDF format inside the docs/ directory. The chatbot will learn from these files when it starts.
+# Mac/Linux
+python3 -m venv venv
+source venv/bin/activate
+3. Install Dependencies
+Bash
 
-5. Run the Application
-Start the Flask server from your terminal:
+pip install -r requirements.txt
+4. Configure Environment
+Create a file named .env in the root directory:
 
+Ini, TOML
+
+GOOGLE_API_KEY="paste_your_api_key_here"
+5. Add Documents
+Place your PDF files (SOPs, Policies) inside the docs/ folder.
+
+⚡ Usage Guide
+Start the Application
 Bash
 
 python app.py
-You should see output indicating that the server is running and the RAG chain has been initialized.
+Wait for the "Initializing RAG Chain..." message. The first run may take a moment to download the local embedding model.
 
-6. Open the Chatbot
-Open your web browser and navigate to: http://127.0.0.1:5000
+1. Login
+Navigate to http://127.0.0.1:5000.
 
-You can now start chatting with your assistant!
+Login as Employee: Access the chat interface to ask questions.
 
-💡 How It Works
-This chatbot uses a modern AI architecture called Retrieval-Augmented Generation (RAG).
+Login as Admin: Access the chat + the Analytics link in the header.
 
-Loading & Chunking: When the server starts, it loads all documents from the docs/ folder and splits them into smaller, manageable chunks.
+2. Chatting
+Ask Questions: "What is the template for a software update?"
 
-Embedding & Storing: Each chunk of text is converted into a numerical representation (an embedding) and stored in a ChromaDB vector database.
+Voice: Click the 🎙️ icon to speak.
 
-User Query: When you ask a question, the system first looks at the chat history to see if it's a follow-up question. It rephrases your question into a standalone query if needed.
+Edit: Click the ✏️ icon on your message to fix a typo.
 
-Retrieval: The system searches the vector database to find the text chunks that are most relevant to your question.
+Export: Click the 📄 icon in the header to download the chat as a PDF.
 
-Generation: The original question, chat history, and the retrieved text chunks are sent to the Gemini Pro model with a detailed prompt. The AI then generates a natural language answer based only on the information it was given.
+3. Analytics (Admin Only)
+Click "📊 Analytics" in the header to view:
 
-This process ensures the chatbot's answers are grounded in your specific documentation and reduces the risk of AI "hallucinations."
+Total query volume vs. Unanswered queries.
+
+Line chart of usage over time.
+
+User satisfaction (Thumbs Up vs. Down).
+
+Specific lists of gaps in your documentation.
+
+📂 Project Structure
+Plaintext
+
+/Change-Management-Bot
+│
+├── app.py                 # Main Application Logic (Flask + RAG + Analytics)
+├── requirements.txt       # Python Dependencies
+├── .env                   # API Keys (Ignored by Git)
+├── README.md              # Project Documentation
+│
+├── docs/                  # Knowledge Base
+│   └── SOP.pdf            # Your Source Documents
+│
+├── static/                # Frontend Assets
+│   ├── style.css          # Responsive Styling & Animations
+│   └── script.js          # Logic for Chat, Voice, Feedback, PDF
+│
+└── templates/             # HTML Views
+    ├── index.html         # Main Chat Interface
+    ├── login.html         # Authentication Page
+    └── analytics.html     # Admin Dashboard
+🔮 Future Roadmap
+[ ] Active Directory Integration: Replace simple login with true SSO (LDAP/OAuth).
+
+[ ] Admin Upload Portal: Allow Admins to upload/delete PDFs via the UI.
+
+[ ] Teams/Slack Integration: Deploy the bot where users work.
+
+[ ] Fine-Tuning: Fine-tune the Gemini model on specific enterprise jargon.
+
+<div align="center"> <sub>Built with ❤️ using Python, LangChain, and Gemini.</sub> </div>
