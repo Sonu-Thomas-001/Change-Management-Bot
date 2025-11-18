@@ -1,7 +1,7 @@
 import os
 import csv
 import datetime
-from collections import Counter
+from collections import Counter, defaultdict
 from flask import Flask, request, jsonify, render_template
 from langchain_google_genai import GoogleGenerativeAIEmbeddings, ChatGoogleGenerativeAI
 from langchain_community.document_loaders import PyPDFDirectoryLoader
@@ -15,7 +15,7 @@ from dotenv import load_dotenv
 
 # --- Configuration ---
 load_dotenv()
-# Using /tmp/ for cloud compatibility, change to local path if running locally only
+# Use /tmp/ for cloud compatibility, or just "query_logs.csv" for local
 LOG_FILE = "query_logs.csv" 
 FEEDBACK_FILE = "feedback_logs.csv"
 
@@ -71,7 +71,6 @@ def initialize_rag_chain():
         vectorstore = Chroma.from_documents(documents=docs, embedding=embeddings)
         retriever = vectorstore.as_retriever()
         
-        # Using standard 1.5 flash model
         llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0.3)
 
         contextualize_q_system_prompt = (
@@ -91,7 +90,6 @@ def initialize_rag_chain():
             llm, retriever, contextualize_q_prompt
         )
 
-        # --- UPDATED PROMPT FOR RICH FORMATTING ---
         qa_system_prompt = (
             "You are the 'Change Management Assistant', a friendly and professional AI chatbot. "
             "Your primary purpose is to answer employee questions about the change management process based on the provided context. "
@@ -137,8 +135,9 @@ def ask_question():
 
     data = request.get_json()
     question = data.get('question')
+    # History is now managed by Frontend mostly, but backend expects it
     chat_history_json = data.get('chat_history', [])
-
+    
     if not question:
         return jsonify({"error": "No question provided."}), 400
 
@@ -169,24 +168,46 @@ def feedback():
 @app.route('/analytics')
 def analytics():
     logs = []
-    unanswered_count = 0
-    all_text = ""
+    unanswered_list = []
     total_queries = 0
-    
+    all_questions = []
+    daily_counts = defaultdict(int)
+
+    # 1. Process Query Logs
     if os.path.exists(LOG_FILE):
         try:
             with open(LOG_FILE, mode='r', encoding='utf-8') as file:
                 reader = csv.DictReader(file)
-                rows = list(reader)[::-1] 
+                rows = list(reader)
+                
                 total_queries = len(rows)
                 for row in rows:
-                    logs.append(row)
+                    # For Main Table (Reverse Order)
+                    logs.insert(0, row)
+                    
+                    # For Daily Trend Chart
+                    try:
+                        date_key = datetime.datetime.strptime(row['Timestamp'], "%Y-%m-%d %H:%M:%S").strftime("%Y-%m-%d")
+                        daily_counts[date_key] += 1
+                    except:
+                        pass
+
+                    all_questions.append(row['Question'].strip())
+
                     if row['Status'] == 'Unanswered':
-                        unanswered_count += 1
-                    all_text += " " + row['Question'].lower()
+                        unanswered_list.append(row)
+
         except Exception as e:
             print(f"Error reading query logs: {e}")
 
+    # 2. Sort Date Data
+    sorted_dates = sorted(daily_counts.keys())
+    chart_counts = [daily_counts[d] for d in sorted_dates]
+
+    # 3. Most Asked
+    most_common_questions = Counter(all_questions).most_common(5)
+
+    # 4. Process Feedback
     feedback_logs = []
     positive_fb = 0
     negative_fb = 0
@@ -205,15 +226,14 @@ def analytics():
         except Exception as e:
             print(f"Error reading feedback logs: {e}")
 
-    stop_words = {'what', 'is', 'the', 'how', 'to', 'a', 'an', 'of', 'in', 'for', 'template', 'change', 'does', 'can', 'i', 'give', 'me'}
-    words = [w for w in all_text.split() if w not in stop_words and len(w) > 3]
-    most_common_words = Counter(words).most_common(8)
-
     return render_template('analytics.html', 
-                           logs=logs, 
+                           logs=logs[:50],
                            total=total_queries, 
-                           unanswered=unanswered_count,
-                           topics=most_common_words,
+                           unanswered_count=len(unanswered_list),
+                           unanswered_list=unanswered_list,
+                           most_common_questions=most_common_questions,
+                           chart_labels=sorted_dates,
+                           chart_data=chart_counts,
                            feedback_logs=feedback_logs,
                            positive_fb=positive_fb,
                            negative_fb=negative_fb)
