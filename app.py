@@ -256,62 +256,110 @@ def feedback():
     log_feedback(data.get('type'), data.get('content', ''))
     return jsonify({"status": "success"})
 
+# ... (Keep imports and configurations) ...
+
 @app.route('/analytics')
 def analytics():
+    # --- 1. QUERY LOGS PROCESSING ---
     logs = []
     unanswered_list = []
-    total_queries = 0
     all_questions = []
-    daily_counts = defaultdict(int)
-
+    daily_volume = defaultdict(int)
+    hourly_volume = defaultdict(int)
+    status_counts = {"Answered": 0, "Unanswered": 0}
+    
+    total_queries = 0
+    
     if os.path.exists(LOG_FILE):
         try:
             with open(LOG_FILE, mode='r', encoding='utf-8') as file:
                 reader = csv.DictReader(file)
                 rows = list(reader)
                 total_queries = len(rows)
+                
                 for row in rows:
+                    # Main Log (Reverse chronological)
                     logs.insert(0, row)
+                    
+                    # Timestamp Parsing
                     try:
-                        date_key = datetime.datetime.strptime(row['Timestamp'], "%Y-%m-%d %H:%M:%S").strftime("%Y-%m-%d")
-                        daily_counts[date_key] += 1
+                        dt = datetime.datetime.strptime(row['Timestamp'], "%Y-%m-%d %H:%M:%S")
+                        date_key = dt.strftime("%Y-%m-%d")
+                        hour_key = dt.strftime("%H:00")
+                        
+                        daily_volume[date_key] += 1
+                        hourly_volume[hour_key] += 1
                     except: pass
+
+                    # Text Analysis
                     all_questions.append(row['Question'].strip())
-                    if row['Status'] == 'Unanswered':
+
+                    # Status Counts
+                    stat = row['Status']
+                    if stat in status_counts:
+                        status_counts[stat] += 1
+                    
+                    if stat == 'Unanswered':
                         unanswered_list.append(row)
+
         except Exception as e:
-            print(f"Error reading logs: {e}")
+            print(f"Log Error: {e}")
 
-    sorted_dates = sorted(daily_counts.keys())
-    chart_counts = [daily_counts[d] for d in sorted_dates]
-    most_common_questions = Counter(all_questions).most_common(5)
-
-    feedback_logs = []
-    positive_fb = 0
-    negative_fb = 0
+    # --- 2. FEEDBACK PROCESSING ---
+    feedback_data = {"thumbs_up": 0, "thumbs_down": 0}
+    recent_feedback = []
     
     if os.path.exists(FEEDBACK_FILE):
         try:
             with open(FEEDBACK_FILE, mode='r', encoding='utf-8') as file:
                 reader = csv.DictReader(file)
-                fb_rows = list(reader)[::-1]
+                fb_rows = list(reader)
                 for row in fb_rows:
-                    feedback_logs.append(row)
-                    if row['Type'] == 'thumbs_up': positive_fb += 1
-                    elif row['Type'] == 'thumbs_down': negative_fb += 1
+                    recent_feedback.insert(0, row)
+                    if row['Type'] in feedback_data:
+                        feedback_data[row['Type']] += 1
         except Exception as e: pass
 
+    # --- 3. KPI CALCULATIONS ---
+    # Success Rate
+    success_rate = 0
+    if total_queries > 0:
+        success_rate = round((status_counts["Answered"] / total_queries) * 100, 1)
+
+    # Feedback Score (Net Positive %)
+    total_feedback = feedback_data["thumbs_up"] + feedback_data["thumbs_down"]
+    satisfaction_score = 0
+    if total_feedback > 0:
+        satisfaction_score = round((feedback_data["thumbs_up"] / total_feedback) * 100, 1)
+
+    # --- 4. CHART DATA PREP ---
+    # Sort dates for line chart
+    sorted_dates = sorted(daily_volume.keys())
+    volume_data = [daily_volume[d] for d in sorted_dates]
+
+    # Top Keywords
+    stop_words = {'what', 'is', 'the', 'how', 'to', 'a', 'an', 'of', 'in', 'for', 'template', 'change', 'does', 'can', 'i', 'give', 'me', 'show'}
+    words = [w for w in " ".join(all_questions).lower().split() if w not in stop_words and len(w) > 3]
+    top_keywords = Counter(words).most_common(8)
+
     return render_template('analytics.html', 
-                           logs=logs[:50],
+                           # KPIs
                            total=total_queries, 
+                           success_rate=success_rate,
+                           satisfaction_score=satisfaction_score,
                            unanswered_count=len(unanswered_list),
-                           unanswered_list=unanswered_list,
-                           most_common_questions=most_common_questions,
+                           
+                           # Chart Data
                            chart_labels=sorted_dates,
-                           chart_data=chart_counts,
-                           feedback_logs=feedback_logs,
-                           positive_fb=positive_fb,
-                           negative_fb=negative_fb)
+                           chart_data=volume_data,
+                           status_counts=[status_counts["Answered"], status_counts["Unanswered"]],
+                           feedback_counts=[feedback_data["thumbs_up"], feedback_data["thumbs_down"]],
+                           
+                           # Tables / Lists
+                           logs=logs[:50], 
+                           unanswered_list=unanswered_list,
+                           top_keywords=top_keywords,
+                           recent_feedback=recent_feedback[:10])
 
 if __name__ == '__main__':
     initialize_rag_chain()
