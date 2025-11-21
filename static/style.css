@@ -296,3 +296,14 @@ body {
 #export-pdf-btn:hover { opacity: 1; }
 
 /* ... Rest of your .header-actions and other CSS remains the same ... */
+
+/* Add this at the end of static/style.css */
+
+canvas {
+    max-width: 100% !important;
+    height: auto !important;
+    background: white;
+    border-radius: 8px;
+    padding: 10px;
+    margin-top: 10px;
+}

@@ -4,8 +4,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const chatBox = document.getElementById('chat-box');
     const micBtn = document.getElementById('mic-btn');
     const clearBtn = document.getElementById('clear-btn');
+    const exportPdfBtn = document.getElementById('export-pdf-btn');
     
-    // --- 1. Clear Logic ---
+    // --- Clear Chat ---
     if (clearBtn) {
         clearBtn.addEventListener('click', () => {
             if(confirm("Are you sure you want to delete all chat history?")) {
@@ -15,15 +16,36 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- 2. Load History ---
+    // --- PDF Export ---
+    if (exportPdfBtn) {
+        exportPdfBtn.addEventListener('click', () => {
+            const element = document.getElementById('chat-box');
+            const opt = {
+                margin: 10,
+                filename: 'ChangeAssistant_ChatHistory.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, logging: true },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(element).save();
+        });
+    }
+
+    // --- Load History ---
     let chatHistory = [];
     try { chatHistory = JSON.parse(localStorage.getItem('chatHistory')) || []; } catch (e) { chatHistory = []; }
 
     if (chatHistory.length > 0) {
         chatBox.innerHTML = ''; 
         chatHistory.forEach(msg => {
-            const sender = msg.type === 'human' ? 'user' : 'bot';
-            addMessage(msg.content, sender, false, false); 
+            if (msg.type === 'chart') {
+                addMessage(msg.content.text, 'bot', false, false);
+                // Pass the chart type from history
+                addChartMessage(msg.content.chart_data, msg.content.chart_type);
+            } else {
+                const sender = msg.type === 'human' ? 'user' : 'bot';
+                addMessage(msg.content, sender, false, false); 
+            }
         });
     } else {
         chatBox.innerHTML = `
@@ -38,7 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('chatHistory', JSON.stringify(chatHistory));
     }
 
-    // --- 3. Voice ---
+    // --- Voice ---
     try {
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -56,7 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else { if(micBtn) micBtn.style.display = 'none'; }
     } catch (e) { console.error(e); }
 
-    // --- 4. Submit ---
+    // --- Chat Submission ---
     chatForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const message = userInput.value.trim();
@@ -65,7 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
         addMessage(message, 'user', false, true);
         userInput.value = '';
 
-        // --- UPDATED: Use HTML Dots for Loading ---
+        // Use HTML Dots for Loading
         const loadingHTML = '<div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>';
         const loadingWrapper = addMessage(loadingHTML, 'bot', true, false); 
         
@@ -77,18 +99,25 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             
             const data = await response.json();
+            
             if (data.error) throw new Error(data.error);
 
-            // Update content
-            const contentDiv = loadingWrapper.querySelector('.message-content');
-            contentDiv.innerHTML = marked.parse(data.answer);
-            
-            // Add Buttons
-            const bubble = loadingWrapper.querySelector('.chat-message');
-            addCopyButton(bubble, data.answer);
-            addFeedbackButtons(loadingWrapper, data.answer);
+            loadingWrapper.remove();
 
-            chatHistory.push({ type: 'ai', content: data.answer });
+            // --- HANDLE CHART RESPONSE ---
+            if (data.type === 'chart') {
+                addMessage(data.text, 'bot', false, false);
+                addChartMessage(data.chart_data, data.chart_type);
+                
+                chatHistory.push({ type: 'chart', content: data });
+            } else {
+                // Normal Text Response
+                const finalWrapper = addMessage(data.answer, 'bot', false, false);
+                addCopyButton(finalWrapper.querySelector('.chat-message'), data.answer);
+                addFeedbackButtons(finalWrapper, data.answer);
+                
+                chatHistory.push({ type: 'ai', content: data.answer });
+            }
             saveToLocalStorage();
             
         } catch (error) {
@@ -96,7 +125,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- 5. Render Message ---
+    // --- Helper: Render Messages ---
     function addMessage(text, sender, isLoading = false, save = true) {
         if (save && sender === 'user') {
             chatHistory.push({ type: 'human', content: text });
@@ -143,6 +172,49 @@ document.addEventListener('DOMContentLoaded', () => {
         return wrapper; 
     }
 
+    // --- Helper: Render Dynamic Charts ---
+    function addChartMessage(chartData, chartType = 'bar') {
+        const wrapper = document.createElement('div');
+        wrapper.classList.add('message-wrapper', 'bot');
+
+        const bubble = document.createElement('div');
+        bubble.classList.add('chat-message', 'bot');
+        bubble.style.width = '100%';
+        
+        const canvasContainer = document.createElement('div');
+        canvasContainer.style.position = 'relative';
+        canvasContainer.style.height = '300px';
+        canvasContainer.style.width = '100%';
+        
+        const canvas = document.createElement('canvas');
+        canvasContainer.appendChild(canvas);
+        bubble.appendChild(canvasContainer);
+        wrapper.appendChild(bubble);
+        
+        chatBox.appendChild(wrapper);
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+        // Configure Chart Options based on Type
+        const showScales = chartType === 'bar';
+        
+        new Chart(canvas, {
+            type: chartType,
+            data: chartData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: { 
+                    y: { beginAtZero: true, display: showScales },
+                    x: { display: showScales }
+                },
+                plugins: { 
+                    // Show legend only for Pie/Doughnut
+                    legend: { display: !showScales } 
+                }
+            }
+        });
+    }
+
     function addCopyButton(bubbleDiv, rawText) {
         let actionsDiv = bubbleDiv.querySelector('.message-actions');
         if (!actionsDiv) {
@@ -154,7 +226,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const copyBtn = document.createElement('button');
         copyBtn.className = 'action-btn copy-btn';
-        copyBtn.title = "Copy Text";
         copyBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
         
         const feedbackSpan = document.createElement('span');
@@ -173,25 +244,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function addFeedbackButtons(wrapperDiv, content) {
         if (wrapperDiv.querySelector('.feedback-actions')) return;
-
         const fbDiv = document.createElement('div');
         fbDiv.className = 'feedback-actions';
         
         const upBtn = document.createElement('button');
         upBtn.className = 'feedback-btn';
         upBtn.innerHTML = '👍'; 
-        upBtn.title = "Helpful";
         upBtn.onclick = () => sendFeedback('thumbs_up', content, upBtn);
 
         const downBtn = document.createElement('button');
         downBtn.className = 'feedback-btn';
         downBtn.innerHTML = '👎';
-        downBtn.title = "Not Helpful";
         downBtn.onclick = () => sendFeedback('thumbs_down', content, downBtn);
 
         fbDiv.appendChild(upBtn);
         fbDiv.appendChild(downBtn);
-        
         wrapperDiv.appendChild(fbDiv); 
     }
 
@@ -207,41 +274,4 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         } catch (e) { console.error(e); }
     }
-});
-
-document.addEventListener('DOMContentLoaded', () => {
-    // ... Existing variable definitions ...
-    const exportPdfBtn = document.getElementById('export-pdf-btn'); // NEW: Get the button
-
-    // ... (Keep existing history loading, voice interaction, clear chat logic) ...
-    
-    // --- NEW: PDF Export Functionality ---
-    if (exportPdfBtn) {
-        exportPdfBtn.addEventListener('click', exportChatToPDF);
-    }
-
-    function exportChatToPDF() {
-        const element = document.getElementById('chat-box');
-        
-        // Configuration for the PDF output
-        const opt = {
-            margin: 10,
-            filename: 'ChangeAssistant_ChatHistory.pdf',
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2, logging: true, dpi: 192, letterRendering: true },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-        };
-
-        // Call the html2pdf library
-        // We clone the element first to ensure any running animations or spinners don't get captured
-        html2pdf().set(opt).from(element).save();
-
-        // Optional: Provide quick visual feedback on the button itself
-        exportPdfBtn.innerHTML = '✅';
-        setTimeout(() => {
-            exportPdfBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>`;
-        }, 2000);
-    }
-
-    // ... (Keep all other existing functions and logic here, including addMessage, chatForm.addEventListener, sendFeedback, etc.) ...
 });
