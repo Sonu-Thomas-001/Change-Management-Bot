@@ -126,6 +126,140 @@ def get_servicenow_stats(group_by_field="state", chart_type="bar"):
         print(f"API Error: {e}")
         return jsonify({"answer": "Error fetching data from ServiceNow."})
 
+def get_ticket_details(ticket_number):
+    INSTANCE = os.environ.get("SERVICENOW_INSTANCE")
+    USER = os.environ.get("SERVICENOW_USER")
+    PASSWORD = os.environ.get("SERVICENOW_PASSWORD")
+
+    # Mock Mode
+    if ticket_number.startswith("MOCK-") or not all([INSTANCE, USER, PASSWORD]):
+        mock_db = {
+            "CR-1024": {
+                "state": "Implement", 
+                "priority": "2 - High", 
+                "short_description": "Database Migration",
+                "risk": "High",
+                "impact": "2 - Medium",
+                "assigned_to": "David L.",
+                "assignment_group": "Database Team",
+                "start_date": "2023-12-01 08:00:00",
+                "end_date": "2023-12-01 12:00:00",
+                "type": "Normal"
+            },
+            "MOCK-1024": {
+                "state": "Implement", 
+                "priority": "2 - High", 
+                "short_description": "Database Migration",
+                "risk": "High",
+                "impact": "2 - Medium",
+                "assigned_to": "David L.",
+                "assignment_group": "Database Team",
+                "start_date": "2023-12-01 08:00:00",
+                "end_date": "2023-12-01 12:00:00",
+                "type": "Normal"
+            },
+            "CR-1001": {
+                "state": "New", 
+                "priority": "4 - Low", 
+                "short_description": "Firewall Rule Update",
+                "risk": "Low",
+                "impact": "3 - Low",
+                "assigned_to": "Sarah C.",
+                "assignment_group": "Network Security",
+                "start_date": "2023-12-05 10:00:00",
+                "end_date": "2023-12-05 11:00:00",
+                "type": "Standard"
+            }
+        }
+        ticket = mock_db.get(ticket_number)
+        if ticket:
+            details = (
+                f"**{ticket_number}** Details:\n\n"
+                f"*   **Description:** {ticket['short_description']}\n"
+                f"*   **Type:** {ticket.get('type', 'N/A')}\n"
+                f"*   **State:** {ticket['state']}\n"
+                f"*   **Priority:** {ticket['priority']}\n"
+                f"*   **Risk:** {ticket['risk']}\n"
+                f"*   **Impact:** {ticket['impact']}\n"
+                f"*   **Assigned To:** {ticket['assigned_to']} ({ticket['assignment_group']})\n"
+                f"*   **Planned Start:** {ticket['start_date']}\n"
+                f"*   **Planned End:** {ticket['end_date']}"
+            )
+            return jsonify({"answer": details})
+        else:
+            return jsonify({"answer": f"I couldn't find any record for **{ticket_number}**."})
+
+    url = f"{INSTANCE}/api/now/table/change_request"
+    params = {
+        "sysparm_query": f"number={ticket_number}",
+        "sysparm_limit": 1,
+        "sysparm_fields": "state,priority,short_description,risk,impact,assigned_to,assignment_group,start_date,end_date,type",
+        "sysparm_display_value": "true"
+    }
+    
+    try:
+        response = requests.get(url, auth=HTTPBasicAuth(USER, PASSWORD), params=params)
+        data = response.json()
+        if 'result' in data and len(data['result']) > 0:
+            ticket = data['result'][0]
+            
+            # Helper to get display value if it's a link/dict or just string
+            def get_val(key):
+                val = ticket.get(key)
+                if isinstance(val, dict) and 'display_value' in val:
+                    return val['display_value']
+                return val if val else "N/A"
+
+            details = (
+                f"**{ticket_number}** Details:\n\n"
+                f"*   **Description:** {get_val('short_description')}\n"
+                f"*   **Type:** {get_val('type')}\n"
+                f"*   **State:** {get_val('state')}\n"
+                f"*   **Priority:** {get_val('priority')}\n"
+                f"*   **Risk:** {get_val('risk')}\n"
+                f"*   **Impact:** {get_val('impact')}\n"
+                f"*   **Assigned To:** {get_val('assigned_to')}\n"
+                f"*   **Assignment Group:** {get_val('assignment_group')}\n"
+                f"*   **Planned Start:** {get_val('start_date')}\n"
+                f"*   **Planned End:** {get_val('end_date')}"
+            )
+            return jsonify({"answer": details})
+        else:
+            return jsonify({"answer": f"Ticket **{ticket_number}** not found in ServiceNow."})
+    except Exception as e:
+        return jsonify({"answer": f"Error connecting to ServiceNow: {str(e)}"})
+
+def create_change_request(description, impact="Low", risk="Low"):
+    INSTANCE = os.environ.get("SERVICENOW_INSTANCE")
+    USER = os.environ.get("SERVICENOW_USER")
+    PASSWORD = os.environ.get("SERVICENOW_PASSWORD")
+
+    # Mock Mode
+    if not all([INSTANCE, USER, PASSWORD]):
+        import random
+        new_id = f"CR-{random.randint(2000, 9999)}"
+        return jsonify({"answer": f"✅ Successfully created draft Change Request **{new_id}**.\n\n*Description:* {description}\n*Impact:* {impact}\n*Risk:* {risk}"})
+
+    url = f"{INSTANCE}/api/now/table/change_request"
+    headers = {"Content-Type": "application/json", "Accept": "application/json"}
+    payload = {
+        "short_description": description,
+        "impact": "3" if impact == "Low" else "1",
+        "risk": "3" if risk == "Low" else "1",
+        "state": "-5" # New/Draft
+    }
+
+    try:
+        response = requests.post(url, auth=HTTPBasicAuth(USER, PASSWORD), headers=headers, json=payload)
+        if response.status_code == 201:
+            data = response.json()
+            new_number = data['result']['number']
+            return jsonify({"answer": f"✅ Created Change Request **{new_number}** in ServiceNow."})
+        else:
+            return jsonify({"answer": f"Failed to create ticket. Status: {response.status_code}"})
+    except Exception as e:
+        return jsonify({"answer": f"API Error: {str(e)}"})
+
 # --- Initialization ---
 def initialize_rag_chain():
     global rag_chain
@@ -220,7 +354,30 @@ def ask_question():
 
     # --- INTENT DETECTION (Charts - Keeps English) ---
     lower_q = question.lower()
-    if any(x in lower_q for x in ["chart", "graph", "stats", "breakdown", "status"]):
+
+    # 1. Ticket Status Lookup
+    # Improved regex to catch CR-XXXX, CHG-XXXX, or just CHGXXXX/CRXXXX
+    import re
+    # Looks for (CR or CHG) followed by optional hyphen and digits
+    ticket_match = re.search(r"\b(cr|chg|mock)[-]?(\d+)\b", lower_q)
+    
+    if ticket_match and ("status" in lower_q or "check" in lower_q or "ticket" in lower_q):
+        # Reconstruct standard format: PREFIX-NUMBER
+        # Use the full match but normalize case
+        full_match = ticket_match.group(0).upper()
+        return get_ticket_details(full_match)
+            
+    # 2. Create Ticket Intent
+    if "create" in lower_q and ("change request" in lower_q or "ticket" in lower_q):
+        return create_change_request(
+            description=question,
+            impact="Low",
+            risk="Low"
+        )
+
+    # 3. Chart/Stats Intent
+    # Moved "status" check to be stricter or rely on other keywords if it's a general status request
+    if any(x in lower_q for x in ["chart", "graph", "stats", "breakdown", "metrics"]):
         if "risk" in lower_q:
             return get_servicenow_stats(group_by_field="risk", chart_type="pie")
         elif "priority" in lower_q:
@@ -229,6 +386,10 @@ def ask_question():
             return get_servicenow_stats(group_by_field="category", chart_type="bar")
         else:
             return get_servicenow_stats(group_by_field="state", chart_type="bar")
+            
+    # Fallback for "status" if it didn't match a specific ticket
+    if "status" in lower_q and not ticket_match:
+         return get_servicenow_stats(group_by_field="state", chart_type="bar")
     # ---------------------------------
 
     chat_history = []
