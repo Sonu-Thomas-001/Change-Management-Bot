@@ -5,13 +5,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const micBtn = document.getElementById('mic-btn');
     const clearBtn = document.getElementById('clear-btn');
     const exportPdfBtn = document.getElementById('export-pdf-btn');
-    
+
     // --- Clear Chat ---
     if (clearBtn) {
         clearBtn.addEventListener('click', () => {
-            if(confirm("Are you sure you want to delete all chat history?")) {
+            if (confirm("Are you sure you want to delete all chat history?")) {
                 localStorage.removeItem('chatHistory');
-                location.reload(); 
+                location.reload();
             }
         });
     }
@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
     try { chatHistory = JSON.parse(localStorage.getItem('chatHistory')) || []; } catch (e) { chatHistory = []; }
 
     if (chatHistory.length > 0) {
-        chatBox.innerHTML = ''; 
+        chatBox.innerHTML = '';
         chatHistory.forEach(msg => {
             if (msg.type === 'chart') {
                 addMessage(msg.content.text, 'bot', false, false);
@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 addChartMessage(msg.content.chart_data, msg.content.chart_type);
             } else {
                 const sender = msg.type === 'human' ? 'user' : 'bot';
-                addMessage(msg.content, sender, false, false); 
+                addMessage(msg.content, sender, false, false);
             }
         });
     } else {
@@ -75,7 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
             recognition.onstart = () => micBtn.classList.add('recording');
             recognition.onend = () => micBtn.classList.remove('recording');
             recognition.onresult = (e) => { userInput.value = e.results[0][0].transcript; userInput.focus(); };
-        } else { if(micBtn) micBtn.style.display = 'none'; }
+        } else { if (micBtn) micBtn.style.display = 'none'; }
     } catch (e) { console.error(e); }
 
     // --- Chat Submission ---
@@ -89,17 +89,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Use HTML Dots for Loading
         const loadingHTML = '<div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>';
-        const loadingWrapper = addMessage(loadingHTML, 'bot', true, false); 
-        
+        const loadingWrapper = addMessage(loadingHTML, 'bot', true, false);
+
         try {
             const response = await fetch('/ask', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ question: message, chat_history: chatHistory })
             });
-            
+
             const data = await response.json();
-            
+
             if (data.error) throw new Error(data.error);
 
             loadingWrapper.remove();
@@ -108,18 +108,21 @@ document.addEventListener('DOMContentLoaded', () => {
             if (data.type === 'chart') {
                 addMessage(data.text, 'bot', false, false);
                 addChartMessage(data.chart_data, data.chart_type);
-                
+
                 chatHistory.push({ type: 'chart', content: data });
             } else {
                 // Normal Text Response
                 const finalWrapper = addMessage(data.answer, 'bot', false, false);
-                addCopyButton(finalWrapper.querySelector('.chat-message'), data.answer);
+
+                if (!data.disable_copy) {
+                    addCopyButton(finalWrapper.querySelector('.chat-message'), data.answer);
+                }
+
                 addFeedbackButtons(finalWrapper, data.answer);
-                
+
                 chatHistory.push({ type: 'ai', content: data.answer });
             }
             saveToLocalStorage();
-            
         } catch (error) {
             loadingWrapper.querySelector('.message-content').innerHTML = `<span style="color:red;">⚠️ Error: ${error.message}</span>`;
         }
@@ -137,13 +140,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const bubble = document.createElement('div');
         bubble.classList.add('chat-message', sender);
-        
+
         const contentDiv = document.createElement('div');
         contentDiv.classList.add('message-content');
-        
+
         if (sender === 'user') contentDiv.textContent = text;
         else contentDiv.innerHTML = isLoading ? text : marked.parse(text);
-        
+
         bubble.appendChild(contentDiv);
 
         if (sender === 'user') {
@@ -158,7 +161,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (sender === 'bot' && !isLoading) {
-             addCopyButton(bubble, text);
+            addCopyButton(bubble, text);
         }
 
         wrapper.appendChild(bubble);
@@ -169,7 +172,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         chatBox.appendChild(wrapper);
         chatBox.scrollTop = chatBox.scrollHeight;
-        return wrapper; 
+        return wrapper;
     }
 
     // --- Helper: Render Dynamic Charts ---
@@ -180,36 +183,36 @@ document.addEventListener('DOMContentLoaded', () => {
         const bubble = document.createElement('div');
         bubble.classList.add('chat-message', 'bot');
         bubble.style.width = '100%';
-        
+
         const canvasContainer = document.createElement('div');
         canvasContainer.style.position = 'relative';
         canvasContainer.style.height = '300px';
         canvasContainer.style.width = '100%';
-        
+
         const canvas = document.createElement('canvas');
         canvasContainer.appendChild(canvas);
         bubble.appendChild(canvasContainer);
         wrapper.appendChild(bubble);
-        
+
         chatBox.appendChild(wrapper);
         chatBox.scrollTop = chatBox.scrollHeight;
 
         // Configure Chart Options based on Type
         const showScales = chartType === 'bar';
-        
+
         new Chart(canvas, {
             type: chartType,
             data: chartData,
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                scales: { 
+                scales: {
                     y: { beginAtZero: true, display: showScales },
                     x: { display: showScales }
                 },
-                plugins: { 
+                plugins: {
                     // Show legend only for Pie/Doughnut
-                    legend: { display: !showScales } 
+                    legend: { display: !showScales }
                 }
             }
         });
@@ -227,7 +230,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const copyBtn = document.createElement('button');
         copyBtn.className = 'action-btn copy-btn';
         copyBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
-        
+
         const feedbackSpan = document.createElement('span');
         feedbackSpan.className = 'copy-feedback';
         feedbackSpan.textContent = "Copied!";
@@ -246,10 +249,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (wrapperDiv.querySelector('.feedback-actions')) return;
         const fbDiv = document.createElement('div');
         fbDiv.className = 'feedback-actions';
-        
+
         const upBtn = document.createElement('button');
         upBtn.className = 'feedback-btn';
-        upBtn.innerHTML = '👍'; 
+        upBtn.innerHTML = '👍';
         upBtn.onclick = () => sendFeedback('thumbs_up', content, upBtn);
 
         const downBtn = document.createElement('button');
@@ -259,7 +262,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         fbDiv.appendChild(upBtn);
         fbDiv.appendChild(downBtn);
-        wrapperDiv.appendChild(fbDiv); 
+        wrapperDiv.appendChild(fbDiv);
     }
 
     async function sendFeedback(type, content, btnElement) {

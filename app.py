@@ -260,6 +260,39 @@ def create_change_request(description, impact="Low", risk="Low"):
     except Exception as e:
         return jsonify({"answer": f"API Error: {str(e)}"})
 
+def generate_email_draft(topic):
+    # Simple template logic
+    subject = f"Important Update: {topic}"
+    body = (
+        f"Hello Team,\n\n"
+        f"This is an announcement regarding {topic}.\n\n"
+        f"Please be advised that...\n\n"
+        f"Best regards,\n"
+        f"[Your Name]"
+    )
+    
+    # URL Encode for mailto
+    import urllib.parse
+    subject_enc = urllib.parse.quote(subject)
+    body_enc = urllib.parse.quote(body)
+    
+    mailto_link = f"mailto:?subject={subject_enc}&body={body_enc}"
+    
+    # Inline CSS for button look
+    button_html = (
+        f"<br><br>"
+        f"<a href='{mailto_link}' "
+        f"style='background-color: #007bff; color: white; padding: 10px 20px; "
+        f"text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;'>"
+        f"📧 Draft in Outlook"
+        f"</a>"
+    )
+    
+    return jsonify({
+        "answer": f"Here is a draft for your announcement regarding **{topic}**:{button_html}",
+        "disable_copy": True
+    })
+
 # --- Initialization ---
 def initialize_rag_chain():
     global rag_chain
@@ -375,7 +408,17 @@ def ask_question():
             risk="Low"
         )
 
-    # 3. Chart/Stats Intent
+    # 3. Draft Email Intent
+    if "draft" in lower_q and ("email" in lower_q or "communication" in lower_q or "template" in lower_q):
+        # Extract topic (simple heuristic: everything after 'for' or 'about')
+        topic = "Change Request"
+        if "for" in lower_q:
+            topic = question.split("for", 1)[1].strip()
+        elif "about" in lower_q:
+            topic = question.split("about", 1)[1].strip()
+        return generate_email_draft(topic)
+
+    # 4. Chart/Stats Intent
     # Moved "status" check to be stricter or rely on other keywords if it's a general status request
     if any(x in lower_q for x in ["chart", "graph", "stats", "breakdown", "metrics"]):
         if "risk" in lower_q:
