@@ -1,0 +1,6 @@
+event_name,event_type,start_date,end_date,description
+Network Freeze,freeze,2023-12-15,2023-12-17,Critical network infrastructure upgrade - no changes allowed
+Year-End Code Freeze,freeze,2023-12-28,2024-01-02,Holiday freeze period - production changes restricted
+Quarterly Maintenance Window,maintenance,2024-01-15,2024-01-15,Scheduled system maintenance - limited change window
+Security Patch Week,freeze,2024-02-05,2024-02-09,Security patching across all systems - change freeze
+Black Friday Freeze,freeze,2024-11-22,2024-11-25,E-commerce blackout period - no changes to production

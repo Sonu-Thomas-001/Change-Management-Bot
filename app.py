@@ -20,6 +20,7 @@ from dotenv import load_dotenv
 load_dotenv()
 LOG_FILE = "query_logs.csv"
 FEEDBACK_FILE = "feedback_logs.csv"
+CALENDAR_FILE = "change_calendar.csv"
 
 if "GOOGLE_API_KEY" not in os.environ:
     raise ValueError("GOOGLE_API_KEY not found. Please set it in your .env file.")
@@ -33,9 +34,6 @@ retriever = None
 
 # --- Helper Functions: Logging ---
 def log_interaction(question, answer):
-    # Note: We removed the hardcoded 'unanswered_phrase' check because 
-    # the bot might now say it in Spanish/German etc.
-    # Simple logic: if answer is very short or contains "sorry/lo siento", maybe unanswered.
     status = "Answered" 
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     file_exists = os.path.isfile(LOG_FILE)
@@ -60,7 +58,7 @@ def log_feedback(feedback_type, message_content):
     except Exception as e:
         print(f"Feedback logging error: {e}")
 
-# --- FEATURE: ServiceNow Data Fetching (Kept in English as requested) ---
+# --- FEATURE: ServiceNow Data Fetching ---
 def get_servicenow_stats(group_by_field="state", chart_type="bar"):
     INSTANCE = os.environ.get("SERVICENOW_INSTANCE")
     USER = os.environ.get("SERVICENOW_USER")
@@ -205,7 +203,6 @@ def get_ticket_details(ticket_number):
         if 'result' in data and len(data['result']) > 0:
             ticket = data['result'][0]
             
-            # Helper to get display value if it's a link/dict or just string
             def get_val(key):
                 val = ticket.get(key)
                 if isinstance(val, dict) and 'display_value' in val:
@@ -236,7 +233,6 @@ def create_change_request(description, impact="Low", risk="Low"):
     USER = os.environ.get("SERVICENOW_USER")
     PASSWORD = os.environ.get("SERVICENOW_PASSWORD")
 
-    # Mock Mode
     if not all([INSTANCE, USER, PASSWORD]):
         import random
         new_id = f"CR-{random.randint(2000, 9999)}"
@@ -248,7 +244,7 @@ def create_change_request(description, impact="Low", risk="Low"):
         "short_description": description,
         "impact": "3" if impact == "Low" else "1",
         "risk": "3" if risk == "Low" else "1",
-        "state": "-5" # New/Draft
+        "state": "-5"
     }
 
     try:
@@ -263,7 +259,6 @@ def create_change_request(description, impact="Low", risk="Low"):
         return jsonify({"answer": f"API Error: {str(e)}"})
 
 def generate_email_draft(topic):
-    # Simple template logic
     subject = f"Important Update: {topic}"
     body = (
         f"Hello Team,\n\n"
@@ -273,14 +268,12 @@ def generate_email_draft(topic):
         f"[Your Name]"
     )
     
-    # URL Encode for mailto
     import urllib.parse
     subject_enc = urllib.parse.quote(subject)
     body_enc = urllib.parse.quote(body)
     
     mailto_link = f"mailto:?subject={subject_enc}&body={body_enc}"
     
-    # Inline CSS for button look
     button_html = (
         f"<br><br>"
         f"<a href='{mailto_link}' "
@@ -299,7 +292,6 @@ def analyze_risk_score(plan_text):
     if not llm or not retriever:
         return jsonify({"answer": "Risk analysis unavailable. System not initialized."})
     
-    # 1. Retrieve context
     try:
         docs = retriever.invoke(plan_text)
         context_text = "\n\n".join([d.page_content for d in docs])
@@ -307,7 +299,6 @@ def analyze_risk_score(plan_text):
         print(f"Retrieval Error: {e}")
         context_text = "No specific SOPs found."
 
-    # 2. Prompt
     prompt = (
         "You are a Change Management Risk Expert. Analyze the following implementation plan "
         "based on the provided context (SOPs) and standard risk assessment criteria.\n\n"
@@ -323,12 +314,132 @@ def analyze_risk_score(plan_text):
         "- [Step 2]\n"
     )
     
-    # 3. Invoke LLM
     try:
         response = llm.invoke(prompt)
         return jsonify({"answer": response.content})
     except Exception as e:
         return jsonify({"answer": f"Error during risk analysis: {str(e)}"})
+
+def check_schedule_conflict(user_input):
+    """Check if proposed date conflicts with freeze periods in ServiceNow or CSV."""
+    import re
+    from datetime import datetime, timedelta
+    
+    # Extract date from user input
+    proposed_date = None
+    date_str = None
+    
+    # Pattern 1: YYYY-MM-DD
+    match = re.search(r'(\d{4})-(\d{1,2})-(\d{1,2})', user_input)
+    if match:
+        try:
+            proposed_date = datetime.strptime(match.group(0), "%Y-%m-%d")
+            date_str = match.group(0)
+        except: pass
+    
+    # Pattern 2: Month DD, YYYY
+    if not proposed_date:
+        match = re.search(r'(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2}),?\s+(\d{4})', user_input, re.IGNORECASE)
+        if match:
+            try:
+                date_str = f"{match.group(1)} {match.group(2)}, {match.group(3)}"
+                proposed_date = datetime.strptime(date_str, "%B %d, %Y")
+            except: pass
+    
+    # Pattern 3: DD Month YYYY
+    if not proposed_date:
+        match = re.search(r'(\d{1,2})\s+(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{4})', user_input, re.IGNORECASE)
+        if match:
+            try:
+                date_str = f"{match.group(1)} {match.group(2)} {match.group(3)}"
+                proposed_date = datetime.strptime(date_str, "%d %B %Y")
+            except: pass
+    
+    if not proposed_date:
+        return jsonify({"answer": "I couldn't identify a specific date in your request. Please specify a date like 'December 15, 2023' or '2023-12-15'."})
+    
+    # Check for conflicts
+    INSTANCE = os.environ.get("SERVICENOW_INSTANCE")
+    USER = os.environ.get("SERVICENOW_USER")
+    PASSWORD = os.environ.get("SERVICENOW_PASSWORD")
+    conflicts = []
+    
+    # Try ServiceNow API first
+    if all([INSTANCE, USER, PASSWORD]):
+        try:
+            url = f"{INSTANCE}/api/now/table/change_request"
+            start_check = (proposed_date - timedelta(days=1)).strftime("%Y-%m-%d")
+            end_check = (proposed_date + timedelta(days=1)).strftime("%Y-%m-%d")
+            
+            params = {
+                "sysparm_query": f"start_date>={start_check}^start_date<={end_check}^ORend_date>={start_check}^end_date<={end_check}",
+                "sysparm_fields": "number,short_description,start_date,end_date,state,risk",
+                "sysparm_display_value": "true",
+                "sysparm_limit": 10
+            }
+            
+            response = requests.get(url, auth=HTTPBasicAuth(USER, PASSWORD), params=params, timeout=5)
+            if response.status_code == 200:
+                data = response.json()
+                if 'result' in data and len(data['result']) > 0:
+                    for change in data['result']:
+                        desc = change.get('short_description', '').lower()
+                        if 'freeze' in desc or 'blackout' in desc or change.get('risk') == 'High':
+                            conflicts.append({
+                                'event': change.get('short_description', 'Scheduled Change'),
+                                'start': change.get('start_date', 'N/A'),
+                                'end': change.get('end_date', 'N/A'),
+                                'number': change.get('number', 'N/A')
+                            })
+        except Exception as e:
+            print(f"ServiceNow API Error: {e}")
+    
+    # Fallback to CSV
+    if not conflicts and os.path.exists(CALENDAR_FILE):
+        try:
+            with open(CALENDAR_FILE, 'r', encoding='utf-8') as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    try:
+                        freeze_start = datetime.strptime(row['start_date'], "%Y-%m-%d")
+                        freeze_end = datetime.strptime(row['end_date'], "%Y-%m-%d")
+                        
+                        if freeze_start <= proposed_date <= freeze_end:
+                            conflicts.append({
+                                'event': row['event_name'],
+                                'type': row.get('event_type', 'freeze'),
+                                'start': row['start_date'],
+                                'end': row['end_date'],
+                                'description': row.get('description', '')
+                            })
+                    except Exception as e:
+                        print(f"CSV parsing error: {e}")
+                        continue
+        except Exception as e:
+            print(f"CSV read error: {e}")
+    
+    # Format response
+    if conflicts:
+        warnings = ["⚠️ **Conflict Detected!**\n\n"]
+        for conflict in conflicts:
+            if 'number' in conflict:
+                warnings.append(
+                    f"- **{conflict['event']}** ({conflict.get('number')})\n"
+                    f"  - Period: {conflict['start']} to {conflict['end']}\n"
+                )
+            else:
+                warnings.append(
+                    f"- **{conflict['event']}**\n"
+                    f"  - Period: {conflict['start']} to {conflict['end']}\n"
+                    f"  - {conflict.get('description', '')}\n"
+                )
+        
+        warnings.append(f"\n❌ **Recommendation:** Please select a different date to avoid operational conflicts.")
+        return jsonify({"answer": "".join(warnings)})
+    else:
+        return jsonify({
+            "answer": f"✅ **No conflicts found!**\n\nThe date **{proposed_date.strftime('%B %d, %Y')}** appears to be available for scheduling your change. Please proceed with your change request."
+        })
 
 # --- Initialization ---
 def initialize_rag_chain():
@@ -368,7 +479,6 @@ def initialize_rag_chain():
             llm, retriever, contextualize_q_prompt
         )
 
-        # --- MULTI-LANGUAGE SYSTEM PROMPT ---
         qa_system_prompt = (
             "You are the 'Change Management Assistant', a professional AI chatbot. "
             "Your purpose is to answer questions about change management based on the provided context. "
@@ -422,18 +532,13 @@ def ask_question():
     if not question:
         return jsonify({"error": "No question provided."}), 400
 
-    # --- INTENT DETECTION (Charts - Keeps English) ---
     lower_q = question.lower()
-
-    # 1. Ticket Status Lookup
-    # Improved regex to catch CR-XXXX, CHG-XXXX, or just CHGXXXX/CRXXXX
     import re
-    # Looks for (CR or CHG) followed by optional hyphen and digits
+    
+    # 1. Ticket Status Lookup
     ticket_match = re.search(r"\b(cr|chg|mock)[-]?(\d+)\b", lower_q)
     
     if ticket_match and ("status" in lower_q or "check" in lower_q or "ticket" in lower_q):
-        # Reconstruct standard format: PREFIX-NUMBER
-        # Use the full match but normalize case
         full_match = ticket_match.group(0).upper()
         return get_ticket_details(full_match)
             
@@ -447,7 +552,6 @@ def ask_question():
 
     # 3. Draft Email Intent
     if "draft" in lower_q and ("email" in lower_q or "communication" in lower_q or "template" in lower_q):
-        # Extract topic (simple heuristic: everything after 'for' or 'about')
         topic = "Change Request"
         if "for" in lower_q:
             topic = question.split("for", 1)[1].strip()
@@ -457,15 +561,19 @@ def ask_question():
 
     # 4. Risk Scoring Intent
     if "risk" in lower_q and ("score" in lower_q or "analyze" in lower_q or "evaluate" in lower_q or "assess" in lower_q):
-        # Treat the whole question/input as the plan if it's long, or ask for it?
-        # For now, assume the user pastes the plan. 
-        # If the input is short (just "analyze risk"), we might need to ask for the plan.
-        # But the requirement says "A user pastes their Change Implementation Plan".
-        # So we'll use the whole input as the plan.
         return analyze_risk_score(question)
 
-    # 4. Chart/Stats Intent
-    # Moved "status" check to be stricter or rely on other keywords if it's a general status request
+    # 5. Schedule Conflict Detection Intent
+    if any(keyword in lower_q for keyword in ["schedule", "plan for", "implement on", "can i", "available"]):
+        # Check if there's a date reference
+        has_date = re.search(r'\d{4}-\d{1,2}-\d{1,2}', question) or \
+                   re.search(r'(January|February|March|April|May|June|July|August|September|October|November|December)', question, re.IGNORECASE) or \
+                   any(word in lower_q for word in ["weekend", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"])
+        
+        if has_date:
+            return check_schedule_conflict(question)
+
+    # 6. Chart/Stats Intent
     if any(x in lower_q for x in ["chart", "graph", "stats", "breakdown", "metrics"]):
         if "risk" in lower_q:
             return get_servicenow_stats(group_by_field="risk", chart_type="pie")
@@ -479,7 +587,6 @@ def ask_question():
     # Fallback for "status" if it didn't match a specific ticket
     if "status" in lower_q and not ticket_match:
          return get_servicenow_stats(group_by_field="state", chart_type="bar")
-    # ---------------------------------
 
     chat_history = []
     for msg in chat_history_json:
@@ -506,11 +613,8 @@ def feedback():
     log_feedback(data.get('type'), data.get('content', ''))
     return jsonify({"status": "success"})
 
-# ... (Keep imports and configurations) ...
-
 @app.route('/analytics')
 def analytics():
-    # --- 1. QUERY LOGS PROCESSING ---
     logs = []
     unanswered_list = []
     all_questions = []
@@ -528,10 +632,8 @@ def analytics():
                 total_queries = len(rows)
                 
                 for row in rows:
-                    # Main Log (Reverse chronological)
                     logs.insert(0, row)
                     
-                    # Timestamp Parsing
                     try:
                         dt = datetime.datetime.strptime(row['Timestamp'], "%Y-%m-%d %H:%M:%S")
                         date_key = dt.strftime("%Y-%m-%d")
@@ -541,10 +643,8 @@ def analytics():
                         hourly_volume[hour_key] += 1
                     except: pass
 
-                    # Text Analysis
                     all_questions.append(row['Question'].strip())
 
-                    # Status Counts
                     stat = row['Status']
                     if stat in status_counts:
                         status_counts[stat] += 1
@@ -555,7 +655,6 @@ def analytics():
         except Exception as e:
             print(f"Log Error: {e}")
 
-    # --- 2. FEEDBACK PROCESSING ---
     feedback_data = {"thumbs_up": 0, "thumbs_down": 0}
     recent_feedback = []
     
@@ -570,42 +669,31 @@ def analytics():
                         feedback_data[row['Type']] += 1
         except Exception as e: pass
 
-    # --- 3. KPI CALCULATIONS ---
-    # Success Rate
     success_rate = 0
     if total_queries > 0:
         success_rate = round((status_counts["Answered"] / total_queries) * 100, 1)
 
-    # Feedback Score (Net Positive %)
     total_feedback = feedback_data["thumbs_up"] + feedback_data["thumbs_down"]
     satisfaction_score = 0
     if total_feedback > 0:
         satisfaction_score = round((feedback_data["thumbs_up"] / total_feedback) * 100, 1)
 
-    # --- 4. CHART DATA PREP ---
-    # Sort dates for line chart
     sorted_dates = sorted(daily_volume.keys())
     volume_data = [daily_volume[d] for d in sorted_dates]
 
-    # Top Keywords
     stop_words = {'what', 'is', 'the', 'how', 'to', 'a', 'an', 'of', 'in', 'for', 'template', 'change', 'does', 'can', 'i', 'give', 'me', 'show'}
     words = [w for w in " ".join(all_questions).lower().split() if w not in stop_words and len(w) > 3]
     top_keywords = Counter(words).most_common(8)
 
     return render_template('analytics.html', 
-                           # KPIs
                            total=total_queries, 
                            success_rate=success_rate,
                            satisfaction_score=satisfaction_score,
                            unanswered_count=len(unanswered_list),
-                           
-                           # Chart Data
                            chart_labels=sorted_dates,
                            chart_data=volume_data,
                            status_counts=[status_counts["Answered"], status_counts["Unanswered"]],
                            feedback_counts=[feedback_data["thumbs_up"], feedback_data["thumbs_down"]],
-                           
-                           # Tables / Lists
                            logs=logs[:50], 
                            unanswered_list=unanswered_list,
                            top_keywords=top_keywords,
