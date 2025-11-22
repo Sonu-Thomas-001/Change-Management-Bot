@@ -28,6 +28,8 @@ app = Flask(__name__)
 app.secret_key = "change_this_to_a_random_secret_key"
 
 rag_chain = None
+llm = None
+retriever = None
 
 # --- Helper Functions: Logging ---
 def log_interaction(question, answer):
@@ -293,9 +295,44 @@ def generate_email_draft(topic):
         "disable_copy": True
     })
 
+def analyze_risk_score(plan_text):
+    if not llm or not retriever:
+        return jsonify({"answer": "Risk analysis unavailable. System not initialized."})
+    
+    # 1. Retrieve context
+    try:
+        docs = retriever.invoke(plan_text)
+        context_text = "\n\n".join([d.page_content for d in docs])
+    except Exception as e:
+        print(f"Retrieval Error: {e}")
+        context_text = "No specific SOPs found."
+
+    # 2. Prompt
+    prompt = (
+        "You are a Change Management Risk Expert. Analyze the following implementation plan "
+        "based on the provided context (SOPs) and standard risk assessment criteria.\n\n"
+        f"Plan: {plan_text}\n\n"
+        f"Context: {context_text}\n\n"
+        "Provide a risk assessment in the following Markdown format:\n"
+        "## Risk Assessment\n"
+        "**Risk Score:** [High/Medium/Low]\n\n"
+        "### Reasoning\n"
+        "[Brief explanation]\n\n"
+        "### Missing Mitigation Steps\n"
+        "- [Step 1]\n"
+        "- [Step 2]\n"
+    )
+    
+    # 3. Invoke LLM
+    try:
+        response = llm.invoke(prompt)
+        return jsonify({"answer": response.content})
+    except Exception as e:
+        return jsonify({"answer": f"Error during risk analysis: {str(e)}"})
+
 # --- Initialization ---
 def initialize_rag_chain():
-    global rag_chain
+    global rag_chain, llm, retriever
     try:
         print("Initializing RAG Chain...")
         loader = PyPDFDirectoryLoader("docs")
@@ -417,6 +454,15 @@ def ask_question():
         elif "about" in lower_q:
             topic = question.split("about", 1)[1].strip()
         return generate_email_draft(topic)
+
+    # 4. Risk Scoring Intent
+    if "risk" in lower_q and ("score" in lower_q or "analyze" in lower_q or "evaluate" in lower_q or "assess" in lower_q):
+        # Treat the whole question/input as the plan if it's long, or ask for it?
+        # For now, assume the user pastes the plan. 
+        # If the input is short (just "analyze risk"), we might need to ask for the plan.
+        # But the requirement says "A user pastes their Change Implementation Plan".
+        # So we'll use the whole input as the plan.
+        return analyze_risk_score(question)
 
     # 4. Chart/Stats Intent
     # Moved "status" check to be stricter or rely on other keywords if it's a general status request
