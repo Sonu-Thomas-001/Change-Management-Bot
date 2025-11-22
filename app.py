@@ -68,8 +68,15 @@ def get_servicenow_stats(group_by_field="state", chart_type="bar"):
         mock_map = {
             "risk": {"labels": ["Very High", "High", "Moderate", "Low"], "data": [2, 5, 15, 30]},
             "priority": {"labels": ["1 - Critical", "2 - High", "3 - Moderate", "4 - Low"], "data": [1, 4, 20, 10]},
-            "category": {"labels": ["Hardware", "Software", "Network", "Database"], "data": [12, 25, 8, 5]},
-            "state": {"labels": ["New", "Assess", "Authorize", "Scheduled", "Closed"], "data": [10, 5, 8, 12, 40]}
+            "category": {"labels": ["Hardware", "Software", "Network", "Database", "Security"], "data": [12, 25, 8, 5, 10]},
+            "state": {"labels": ["New", "Assess", "Authorize", "Scheduled", "Implement", "Closed"], "data": [10, 5, 8, 12, 15, 40]},
+            "assignee": {"labels": ["John D.", "Sarah M.", "Mike R.", "Lisa K.", "David L."], "data": [15, 20, 12, 8, 10]},
+            "change_type": {"labels": ["Standard", "Normal", "Emergency", "Expedited"], "data": [30, 20, 5, 10]},
+            "approval_rate": {"labels": ["Approved", "Rejected", "Pending"], "data": [45, 8, 12]},
+            "monthly_trend": {"labels": ["Jan", "Feb", "Mar", "Apr", "May", "Jun"], "data": [25, 30, 28, 35, 40, 38]},
+            "completion_time": {"labels": ["< 1 day", "1-3 days", "3-7 days", "7-14 days", "> 14 days"], "data": [10, 25, 20, 15, 5]},
+    "impact": {"labels": ["1 - High", "2 - Medium", "3 - Low"], "data": [8, 22, 35]},
+    "assignment_group": {"labels": ["Network Team", "Database Team", "App Team", "Security Team", "Infrastructure"], "data": [15, 12, 20, 8, 10]}
         }
         selected_data = mock_map.get(group_by_field, mock_map["state"])
         
@@ -573,17 +580,31 @@ def ask_question():
         if has_date:
             return check_schedule_conflict(question)
 
-    # 6. Chart/Stats Intent
-    if any(x in lower_q for x in ["chart", "graph", "stats", "breakdown", "metrics"]):
+    # 6. Enhanced Chart/Stats Intent  
+    if any(x in lower_q for x in ["chart", "graph", "stats", "breakdown", "metrics", "trend", "workload"]):
         if "risk" in lower_q:
             return get_servicenow_stats(group_by_field="risk", chart_type="pie")
         elif "priority" in lower_q:
             return get_servicenow_stats(group_by_field="priority", chart_type="doughnut")
         elif "category" in lower_q:
             return get_servicenow_stats(group_by_field="category", chart_type="bar")
+        elif "assignee" in lower_q or "who" in lower_q:
+            return get_servicenow_stats(group_by_field="assignee", chart_type="bar")
+        elif "type" in lower_q and "change" in lower_q:
+            return get_servicenow_stats(group_by_field="change_type", chart_type="pie")
+        elif "approval" in lower_q or "approved" in lower_q or "rejected" in lower_q:
+            return get_servicenow_stats(group_by_field="approval_rate", chart_type="doughnut")
+        elif "month" in lower_q or "trend" in lower_q:
+            return get_servicenow_stats(group_by_field="monthly_trend", chart_type="line")
+        elif "completion" in lower_q or "duration" in lower_q:
+            return get_servicenow_stats(group_by_field="completion_time", chart_type="bar")
+        elif "impact" in lower_q:
+            return get_servicenow_stats(group_by_field="impact", chart_type="pie")
+        elif "team" in lower_q or "group" in lower_q or "workload" in lower_q:
+            return get_servicenow_stats(group_by_field="assignment_group", chart_type="bar")
         else:
             return get_servicenow_stats(group_by_field="state", chart_type="bar")
-            
+                       
     # Fallback for "status" if it didn't match a specific ticket
     if "status" in lower_q and not ticket_match:
          return get_servicenow_stats(group_by_field="state", chart_type="bar")
