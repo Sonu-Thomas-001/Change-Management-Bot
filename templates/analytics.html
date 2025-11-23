@@ -464,7 +464,8 @@
                             <tr>
                                 <th>Time</th>
                                 <th>Reason</th>
-                                <th>Chat Snippet</th>
+                                <th>User Query</th>
+                                <th>Bot Response</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -473,12 +474,13 @@
                             <tr>
                                 <td style="white-space:nowrap; color:#6b7280;">{{ row.Timestamp }}</td>
                                 <td>{{ row.Reason }}</td>
-                                <td style="font-size:0.85rem; color:#555;">{{ row.Chat_Snippet }}</td>
+                                <td style="font-size:0.85rem; color:#555;">{{ row.User_Query }}</td>
+                                <td style="font-size:0.85rem; color:#555;">{{ row.Bot_Response }}</td>
                             </tr>
                             {% endfor %}
                             {% else %}
                             <tr>
-                                <td colspan="3">No escalations found.</td>
+                                <td colspan="4">No escalations found.</td>
                             </tr>
                             {% endif %}
                         </tbody>
