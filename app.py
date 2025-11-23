@@ -613,7 +613,8 @@ def ask_question():
             return check_schedule_conflict(question)
 
     # 6. Enhanced Chart/Stats Intent  
-    if any(x in lower_q for x in ["chart", "graph", "stats", "breakdown", "metrics", "trend", "workload"]):
+    chart_keywords = ["chart", "graph", "stats", "breakdown", "metrics", "trend", "workload", "how many", "show", "display", "visualize"]
+    if any(x in lower_q for x in chart_keywords):
         if "risk" in lower_q:
             return get_servicenow_stats(group_by_field="risk", chart_type="pie")
         elif "priority" in lower_q:
@@ -624,7 +625,10 @@ def ask_question():
             return get_servicenow_stats(group_by_field="assignee", chart_type="bar")
         elif "type" in lower_q and "change" in lower_q:
             return get_servicenow_stats(group_by_field="change_type", chart_type="pie")
-        elif "approval" in lower_q or "approved" in lower_q or "rejected" in lower_q:
+        elif any(word in lower_q for word in ["approval", "approved", "rejected", "reject", "accept", "accepted", "deny", "denied"]):
+            # Check if asking for comparison or counts
+            if any(word in lower_q for word in ["vs", "versus", "compared", "comparison"]):
+                return get_servicenow_stats(group_by_field="approval_rate", chart_type="pie")
             return get_servicenow_stats(group_by_field="approval_rate", chart_type="doughnut")
         elif "month" in lower_q or "trend" in lower_q:
             return get_servicenow_stats(group_by_field="monthly_trend", chart_type="line")
