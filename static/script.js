@@ -120,6 +120,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 addFeedbackButtons(finalWrapper, data.answer);
 
+                // Check for low confidence
+                if (data.low_confidence) {
+                    addEscalationButton(finalWrapper, data.answer, "Low Confidence Bot Response");
+                }
+
                 chatHistory.push({ type: 'ai', content: data.answer });
             }
             saveToLocalStorage();
@@ -275,6 +280,62 @@ document.addEventListener('DOMContentLoaded', () => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ type: type, content: content })
             });
+
+            // If Thumbs Down, offer escalation
+            if (type === 'thumbs_down') {
+                addEscalationButton(parent.parentElement, content, "User Feedback (Thumbs Down)");
+            }
+
         } catch (e) { console.error(e); }
+    }
+
+    function addEscalationButton(wrapperDiv, content, reason) {
+        if (wrapperDiv.querySelector('.escalation-actions')) return;
+
+        const escDiv = document.createElement('div');
+        escDiv.className = 'escalation-actions';
+        escDiv.style.marginTop = '10px';
+
+        const escBtn = document.createElement('button');
+        escBtn.className = 'action-btn';
+        escBtn.style.backgroundColor = '#dc3545'; // Red color
+        escBtn.style.color = 'white';
+        escBtn.style.border = 'none';
+        escBtn.style.padding = '5px 10px';
+        escBtn.style.borderRadius = '4px';
+        escBtn.style.cursor = 'pointer';
+        escBtn.innerHTML = '⚠️ Escalate to Change Manager';
+
+        escBtn.onclick = () => escalateChat(escBtn, reason);
+
+        escDiv.appendChild(escBtn);
+        wrapperDiv.appendChild(escDiv);
+    }
+
+    async function escalateChat(btnElement, reason) {
+        const originalText = btnElement.innerHTML;
+        btnElement.innerHTML = 'Sending...';
+        btnElement.disabled = true;
+
+        try {
+            const response = await fetch('/escalate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ chat_history: chatHistory, reason: reason })
+            });
+            const data = await response.json();
+
+            if (data.status === 'success') {
+                btnElement.innerHTML = '✅ Request sent to Change Manager';
+                btnElement.style.backgroundColor = '#28a745'; // Green
+            } else {
+                btnElement.innerHTML = '❌ Failed. Try again.';
+                btnElement.disabled = false;
+            }
+        } catch (e) {
+            console.error(e);
+            btnElement.innerHTML = '❌ Error. Try again.';
+            btnElement.disabled = false;
+        }
     }
 });

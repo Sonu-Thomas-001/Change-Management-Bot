@@ -21,6 +21,7 @@ load_dotenv()
 LOG_FILE = "query_logs.csv"
 FEEDBACK_FILE = "feedback_logs.csv"
 CALENDAR_FILE = "change_calendar.csv"
+ESCALATION_FILE = "escalation_logs.csv"
 
 if "GOOGLE_API_KEY" not in os.environ:
     raise ValueError("GOOGLE_API_KEY not found. Please set it in your .env file.")
@@ -58,6 +59,22 @@ def log_feedback(feedback_type, message_content):
     except Exception as e:
         print(f"Feedback logging error: {e}")
 
+def log_escalation(chat_history, reason="User Request"):
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    file_exists = os.path.isfile(ESCALATION_FILE)
+    try:
+        with open(ESCALATION_FILE, mode='a', newline='', encoding='utf-8') as file:
+            writer = csv.writer(file)
+            if not file_exists:
+                writer.writerow(["Timestamp", "Reason", "Chat_Snippet"])
+            
+            # Summarize chat history for the log
+            snippet = str(chat_history)[-500:] if chat_history else "No history"
+            writer.writerow([timestamp, reason, snippet])
+            print(f"*** ESCALATION ALERT ***\nReason: {reason}\nTimestamp: {timestamp}\nSee {ESCALATION_FILE} for details.\n************************")
+    except Exception as e:
+        print(f"Escalation logging error: {e}")
+
 # --- FEATURE: ServiceNow Data Fetching ---
 def get_servicenow_stats(group_by_field="state", chart_type="bar"):
     INSTANCE = os.environ.get("SERVICENOW_INSTANCE")
@@ -75,8 +92,8 @@ def get_servicenow_stats(group_by_field="state", chart_type="bar"):
             "approval_rate": {"labels": ["Approved", "Rejected", "Pending"], "data": [45, 8, 12]},
             "monthly_trend": {"labels": ["Jan", "Feb", "Mar", "Apr", "May", "Jun"], "data": [25, 30, 28, 35, 40, 38]},
             "completion_time": {"labels": ["< 1 day", "1-3 days", "3-7 days", "7-14 days", "> 14 days"], "data": [10, 25, 20, 15, 5]},
-    "impact": {"labels": ["1 - High", "2 - Medium", "3 - Low"], "data": [8, 22, 35]},
-    "assignment_group": {"labels": ["Network Team", "Database Team", "App Team", "Security Team", "Infrastructure"], "data": [15, 12, 20, 8, 10]}
+            "impact": {"labels": ["1 - High", "2 - Medium", "3 - Low"], "data": [8, 22, 35]},
+            "assignment_group": {"labels": ["Network Team", "Database Team", "App Team", "Security Team", "Infrastructure"], "data": [15, 12, 20, 8, 10]}
         }
         selected_data = mock_map.get(group_by_field, mock_map["state"])
         
@@ -623,7 +640,14 @@ def ask_question():
         response = rag_chain.invoke({"input": question, "chat_history": chat_history})
         answer = response.get("answer", "Sorry, something went wrong.")
         log_interaction(question, answer)
-        return jsonify({"answer": answer})
+        
+        # Simple heuristic for low confidence
+        low_confidence = False
+        low_confidence_triggers = ["i don't know", "i'm not sure", "no information found", "apologies", "sorry", "cannot answer"]
+        if any(trigger in answer.lower() for trigger in low_confidence_triggers):
+            low_confidence = True
+
+        return jsonify({"answer": answer, "low_confidence": low_confidence})
     except Exception as e:
         print(f"Processing Error: {e}")
         return jsonify({"error": "Failed to process question."}), 500
@@ -633,6 +657,16 @@ def feedback():
     data = request.get_json()
     log_feedback(data.get('type'), data.get('content', ''))
     return jsonify({"status": "success"})
+
+@app.route('/escalate', methods=['POST'])
+def escalate():
+    data = request.get_json()
+    chat_history = data.get('chat_history', [])
+    reason = data.get('reason', 'User Request')
+    
+    log_escalation(chat_history, reason)
+    
+    return jsonify({"status": "success", "message": "Request sent to Change Manager."})
 
 @app.route('/analytics')
 def analytics():
@@ -690,6 +724,15 @@ def analytics():
                         feedback_data[row['Type']] += 1
         except Exception as e: pass
 
+    escalations = []
+    if os.path.exists(ESCALATION_FILE):
+        try:
+            with open(ESCALATION_FILE, mode='r', encoding='utf-8') as file:
+                reader = csv.DictReader(file)
+                escalations = list(reader)
+                escalations.reverse() # Newest first
+        except Exception as e: pass
+
     success_rate = 0
     if total_queries > 0:
         success_rate = round((status_counts["Answered"] / total_queries) * 100, 1)
@@ -718,7 +761,8 @@ def analytics():
                            logs=logs[:50], 
                            unanswered_list=unanswered_list,
                            top_keywords=top_keywords,
-                           recent_feedback=recent_feedback[:10])
+                           recent_feedback=recent_feedback[:10],
+                           escalations=escalations)
 
 if __name__ == '__main__':
     initialize_rag_chain()
