@@ -571,6 +571,214 @@ def get_pending_approvals():
         print(f"Error fetching approvals: {e}")
         return jsonify({"answer": f"❌ Error connecting to ServiceNow: {str(e)}"})
 
+
+def get_pending_tasks():
+    """
+    Fetch pending tasks assigned to the user from ServiceNow and return as formatted HTML table
+    """
+    INSTANCE = os.environ.get("SERVICENOW_INSTANCE")
+    USER = os.environ.get("SERVICENOW_USER")
+    PASSWORD = os.environ.get("SERVICENOW_PASSWORD")
+    
+    # Mock data if ServiceNow is not configured
+    if not all([INSTANCE, USER, PASSWORD]):
+        mock_tasks = [
+            {
+                "number": "TASK0010001",
+                "short_description": "Update Configuration for Production Server",
+                "state": "Work in Progress",
+                "priority": "2 - High",
+                "opened_at": "2025-11-20 09:00:00",
+                "due_date": "2025-11-25"
+            },
+            {
+                "number": "TASK0010002",
+                "short_description": "Verify Database Backup Completion",
+                "state": "Pending",
+                "priority": "1 - Critical",
+                "opened_at": "2025-11-22 11:30:00",
+                "due_date": "2025-11-24"
+            },
+            {
+                "number": "TASK0010003",
+                "short_description": "Document Change Procedure",
+                "state": "Assigned",
+                "priority": "3 - Moderate",
+                "opened_at": "2025-11-23 14:00:00",
+                "due_date": "2025-11-26"
+            },
+            {
+                "number": "TASK0010004",
+                "short_description": "Review Security Patches",
+                "state": "Pending",
+                "priority": "2 - High",
+                "opened_at": "2025-11-24 08:15:00",
+                "due_date": "2025-11-25"
+            }
+        ]
+        
+        # Build HTML table
+        table_html = '''
+        <div class="tasks-container">
+            <h3>📝 Your Pending Tasks</h3>
+            <div class="table-responsive">
+                <table class="tasks-table">
+                    <thead>
+                        <tr>
+                            <th>Task Number</th>
+                            <th>Description</th>
+                            <th>State</th>
+                            <th>Priority</th>
+                            <th>Due Date</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        '''
+        
+        for task in mock_tasks:
+            # Determine state badge color
+            state_class = "state-pending"
+            if "progress" in task['state'].lower():
+                state_class = "state-progress"
+            elif task['state'].lower() == "assigned":
+                state_class = "state-assigned"
+            
+            table_html += f'''
+                        <tr>
+                            <td><strong>{task['number']}</strong></td>
+                            <td>{task['short_description']}</td>
+                            <td><span class="state-badge {state_class}">{task['state']}</span></td>
+                            <td><span class="priority-badge priority-{task['priority'].split()[0]}">{task['priority']}</span></td>
+                            <td>{task['due_date']}</td>
+                            <td><button class="view-btn" onclick="window.open('#{task['number']}', '_blank')">View</button></td>
+                        </tr>
+            '''
+        
+        table_html += '''
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <style>
+            .tasks-container { margin: 10px 0; }
+            .tasks-container h3 { margin-bottom: 15px; color: #333; }
+            .table-responsive { overflow-x: auto; }
+            .tasks-table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; }
+            .tasks-table th { background: #031f4a; color: white; padding: 12px; text-align: left; font-weight: 600; }
+            .tasks-table td { padding: 12px; border-bottom: 1px solid #e0e0e0; }
+            .tasks-table tr:hover { background: #f8f9fa; }
+            .state-badge { padding: 4px 8px; border-radius: 4px; font-size: 0.85rem; font-weight: 500; }
+            .state-pending { background: #ffc107; color: #333; }
+            .state-progress { background: #17a2b8; color: white; }
+            .state-assigned { background: #6c757d; color: white; }
+            .priority-badge { padding: 4px 8px; border-radius: 4px; font-size: 0.85rem; font-weight: 500; }
+            .priority-1 { background: #dc3545; color: white; }
+            .priority-2 { background: #fd7e14; color: white; }
+            .priority-3 { background: #ffc107; color: #333; }
+            .priority-4 { background: #28a745; color: white; }
+            .view-btn { background: #007bff; color: white; border: none; padding: 6px 16px; border-radius: 4px; cursor: pointer; font-weight: 500; transition: all 0.2s; }
+            .view-btn:hover { background: #0056b3; transform: translateY(-1px); box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        </style>
+        '''
+        
+        return jsonify({"answer": table_html, "disable_copy": True})
+    
+    # Real ServiceNow API call
+    try:
+        url = f"{INSTANCE}/api/now/table/sc_task"
+        params = {
+            "sysparm_query": f"assigned_to={USER}^active=true^state!=3^state!=4^state!=7",
+            "sysparm_display_value": "true",
+            "sysparm_fields": "number,short_description,state,priority,opened_at,due_date",
+            "sysparm_limit": 20,
+            "sysparm_order_by": "priority"
+        }
+        
+        response = requests.get(url, auth=HTTPBasicAuth(USER, PASSWORD), params=params, timeout=10)
+        
+        if response.status_code == 200:
+            data = response.json()
+            tasks = data.get('result', [])
+            
+            if not tasks:
+                return jsonify({"answer": "✅ You have no pending tasks at the moment!"})
+            
+            # Build HTML table with real data
+            table_html = f'''
+            <div class="tasks-container">
+                <h3>📝 Your Pending Tasks ({len(tasks)})</h3>
+                <div class="table-responsive">
+                    <table class="tasks-table">
+                        <thead>
+                            <tr>
+                                <th>Task Number</th>
+                                <th>Description</th>
+                                <th>State</th>
+                                <th>Priority</th>
+                                <th>Due Date</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            '''
+            
+            for task in tasks:
+                number = task.get('number', 'N/A')
+                desc = task.get('short_description', 'No description')
+                state = task.get('state', 'N/A')
+                priority = task.get('priority', 'N/A')
+                due_date = task.get('due_date', 'No due date')
+                
+                # Determine state color
+                state_class = "state-pending"
+                if "progress" in state.lower():
+                    state_class = "state-progress"
+                elif "assigned" in state.lower():
+                    state_class = "state-assigned"
+                
+                table_html += f'''
+                            <tr>
+                                <td><strong>{number}</strong></td>
+                                <td>{desc}</td>
+                                <td><span class="state-badge {state_class}">{state}</span></td>
+                                <td><span class="priority-badge">{priority}</span></td>
+                                <td>{due_date}</td>
+                                <td><button class="view-btn" onclick="window.open('{INSTANCE}/sc_task.do?sysparm_query=number={number}', '_blank')">View</button></td>
+                            </tr>
+                '''
+            
+            table_html += '''
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <style>
+                .tasks-container { margin: 10px 0; }
+                .tasks-container h3 { margin-bottom: 15px; color: #333; }
+                .table-responsive { overflow-x: auto; }
+                .tasks-table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; }
+                .tasks-table th { background: #031f4a; color: white; padding: 12px; text-align: left; font-weight: 600; }
+                .tasks-table td { padding: 12px; border-bottom: 1px solid #e0e0e0; }
+                .tasks-table tr:hover { background: #f8f9fa; }
+                .state-badge { padding: 4px 8px; border-radius: 4px; font-size: 0.85rem; font-weight: 500; }
+                .state-pending { background: #ffc107; color: #333; }
+                .state-progress { background: #17a2b8; color: white; }
+                .state-assigned { background: #6c757d; color: white; }
+                .priority-badge { padding: 4px 8px; border-radius: 4px; font-size: 0.85rem; font-weight: 500; background: #6c757d; color: white; }
+                .view-btn { background: #007bff; color: white; border: none; padding: 6px 16px; border-radius: 4px; cursor: pointer; font-weight: 500; transition: all 0.2s; }
+                .view-btn:hover { background: #0056b3; transform: translateY(-1px); box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+            </style>
+            '''
+            
+            return jsonify({"answer": table_html, "disable_copy": True})
+        else:
+            return jsonify({"answer": f"❌ Error fetching tasks: Status {response.status_code}"})
+            
+    except Exception as e:
+        print(f"Error fetching tasks: {e}")
+        return jsonify({"answer": f"❌ Error connecting to ServiceNow: {str(e)}"})
+
 def check_schedule_conflict(user_input):
     """Check if proposed date conflicts with freeze periods in ServiceNow or CSV."""
     import re
@@ -805,7 +1013,11 @@ def ask_question():
     if any(keyword in lower_q for keyword in ["pending approval", "my approval", "approvals", "need to approve", "approval request"]):
         return get_pending_approvals()
 
-    # 4. Draft Email Intent
+    # 4. Pending Tasks Intent
+    if any(keyword in lower_q for keyword in ["pending task", "my task", "tasks", "assigned to me", "task list"]):
+        return get_pending_tasks()
+
+    # 5. Draft Email Intent
     if "draft" in lower_q and ("email" in lower_q or "communication" in lower_q or "template" in lower_q):
         topic = "Change Request"
         if "for" in lower_q:
@@ -814,11 +1026,11 @@ def ask_question():
             topic = question.split("about", 1)[1].strip()
         return generate_email_draft(topic)
 
-    # 5. Risk Scoring Intent
+    # 6. Risk Scoring Intent
     if "risk" in lower_q and ("score" in lower_q or "analyze" in lower_q or "evaluate" in lower_q or "assess" in lower_q):
         return analyze_risk_score(question)
 
-    # 6. Schedule Conflict Detection Intent
+    # 7. Schedule Conflict Detection Intent
     if any(keyword in lower_q for keyword in ["schedule", "plan for", "implement on", "can i", "available"]):
         # Check if there's a date reference
         has_date = re.search(r'\d{4}-\d{1,2}-\d{1,2}', question) or \
@@ -828,7 +1040,7 @@ def ask_question():
         if has_date:
             return check_schedule_conflict(question)
 
-    # 7. Enhanced Chart/Stats Intent  
+    # 8. Enhanced Chart/Stats Intent  
     chart_keywords = ["chart", "graph", "stats", "breakdown", "metrics", "trend", "workload", "how many", "show", "display", "visualize"]
     if any(x in lower_q for x in chart_keywords):
         if "risk" in lower_q:
