@@ -44,7 +44,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 addChartMessage(msg.content.chart_data, msg.content.chart_type);
             } else {
                 const sender = msg.type === 'human' ? 'user' : 'bot';
-                addMessage(msg.content, sender, false, false);
+                const isHTML = msg.isHTML || false;
+                addMessage(msg.content, sender, false, false, isHTML);
             }
         });
     } else {
@@ -112,7 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 chatHistory.push({ type: 'chart', content: data });
             } else {
                 // Normal Text Response
-                const finalWrapper = addMessage(data.answer, 'bot', false, false);
+                const finalWrapper = addMessage(data.answer, 'bot', false, false, data.disable_copy);
 
                 if (!data.disable_copy) {
                     addCopyButton(finalWrapper.querySelector('.chat-message'), data.answer);
@@ -125,7 +126,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     addEscalationButton(finalWrapper, data.answer, "Low Confidence Bot Response");
                 }
 
-                chatHistory.push({ type: 'ai', content: data.answer });
+                chatHistory.push({ type: 'ai', content: data.answer, isHTML: data.disable_copy });
             }
             saveToLocalStorage();
         } catch (error) {
@@ -134,7 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // --- Helper: Render Messages ---
-    function addMessage(text, sender, isLoading = false, save = true) {
+    function addMessage(text, sender, isLoading = false, save = true, isHTML = false) {
         if (save && sender === 'user') {
             chatHistory.push({ type: 'human', content: text });
             saveToLocalStorage();
@@ -150,7 +151,7 @@ document.addEventListener('DOMContentLoaded', () => {
         contentDiv.classList.add('message-content');
 
         if (sender === 'user') contentDiv.textContent = text;
-        else contentDiv.innerHTML = isLoading ? text : marked.parse(text);
+        else contentDiv.innerHTML = isLoading ? text : (isHTML ? text : marked.parse(text));
 
         bubble.appendChild(contentDiv);
 

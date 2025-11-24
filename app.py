@@ -397,6 +397,180 @@ def analyze_risk_score(plan_text):
     except Exception as e:
         return jsonify({"answer": f"Error during risk analysis: {str(e)}"})
 
+
+def get_pending_approvals():
+    """
+    Fetch pending approvals from ServiceNow and return as formatted HTML table
+    """
+    INSTANCE = os.environ.get("SERVICENOW_INSTANCE")
+    USER = os.environ.get("SERVICENOW_USER")
+    PASSWORD = os.environ.get("SERVICENOW_PASSWORD")
+    
+    # Mock data if ServiceNow is not configured
+    if not all([INSTANCE, USER, PASSWORD]):
+        mock_approvals = [
+            {
+                "number": "SCTASK0010001",
+                "short_description": "Approve Server Upgrade for Production",
+                "requested_by": "John Smith",
+                "opened_at": "2025-11-20 10:30:00",
+                "priority": "2 - High",
+                "state": "Pending Approval"
+            },
+            {
+                "number": "SCTASK0010002",
+                "short_description": "Database Migration - Customer Portal",
+                "requested_by": "Sarah Johnson",
+                "opened_at": "2025-11-21 14:15:00",
+                "priority": "1 - Critical",
+                "state": "Pending Approval"
+            },
+            {
+                "number": "SCTASK0010003",
+                "short_description": "Network Configuration Change",
+                "requested_by": "Mike Davis",
+                "opened_at": "2025-11-22 09:00:00",
+                "priority": "3 - Moderate",
+                "state": "Pending Approval"
+            }
+        ]
+        
+        # Build HTML table
+        table_html = '''
+        <div class="approvals-container">
+            <h3>📋 Your Pending Approvals</h3>
+            <div class="table-responsive">
+                <table class="approvals-table">
+                    <thead>
+                        <tr>
+                            <th>Ticket</th>
+                            <th>Description</th>
+                            <th>Requested By</th>
+                            <th>Priority</th>
+                            <th>Opened</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        '''
+        
+        for approval in mock_approvals:
+            table_html += f'''
+                        <tr>
+                            <td><strong>{approval['number']}</strong></td>
+                            <td>{approval['short_description']}</td>
+                            <td>{approval['requested_by']}</td>
+                            <td><span class="priority-badge priority-{approval['priority'].split()[0]}">{approval['priority']}</span></td>
+                            <td>{approval['opened_at']}</td>
+                            <td><button class="view-btn" onclick="window.open('#{approval['number']}', '_blank')">View</button></td>
+                        </tr>
+            '''
+        
+        table_html += '''
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <style>
+            .approvals-container { margin: 10px 0; }
+            .approvals-container h3 { margin-bottom: 15px; color: #333; }
+            .table-responsive { overflow-x: auto; }
+            .approvals-table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; }
+            .approvals-table th { background: #031f4a; color: white; padding: 12px; text-align: left; font-weight: 600; }
+            .approvals-table td { padding: 12px; border-bottom: 1px solid #e0e0e0; }
+            .approvals-table tr:hover { background: #f8f9fa; }
+            .priority-badge { padding: 4px 8px; border-radius: 4px; font-size: 0.85rem; font-weight: 500; }
+            .priority-1 { background: #dc3545; color: white; }
+            .priority-2 { background: #fd7e14; color: white; }
+            .priority-3 { background: #ffc107; color: #333; }
+            .priority-4 { background: #28a745; color: white; }
+            .view-btn { background: #007bff; color: white; border: none; padding: 6px 16px; border-radius: 4px; cursor: pointer; font-weight: 500; transition: all 0.2s; }
+            .view-btn:hover { background: #0056b3; transform: translateY(-1px); box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        </style>
+        '''
+        
+        return jsonify({"answer": table_html, "disable_copy": True})
+    
+    # Real ServiceNow API call
+    try:
+        url = f"{INSTANCE}/api/now/table/sysapproval_approver"
+        params = {
+            "sysparm_query": f"approver={USER}^state=requested",
+            "sysparm_display_value": "true",
+            "sysparm_fields": "number,sysapproval,short_description,state,sys_created_on",
+            "sysparm_limit": 20
+        }
+        
+        response = requests.get(url, auth=HTTPBasicAuth(USER, PASSWORD), params=params, timeout=10)
+        
+        if response.status_code == 200:
+            data = response.json()
+            approvals = data.get('result', [])
+            
+            if not approvals:
+                return jsonify({"answer": "✅ You have no pending approvals at the moment!"})
+            
+            # Build HTML table with real data
+            table_html = '''
+            <div class="approvals-container">
+                <h3>📋 Your Pending Approvals ({count})</h3>
+                <div class="table-responsive">
+                    <table class="approvals-table">
+                        <thead>
+                            <tr>
+                                <th>Ticket</th>
+                                <th>Description</th>
+                                <th>State</th>
+                                <th>Created</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            '''.replace('{count}', str(len(approvals)))
+            
+            for approval in approvals:
+                number = approval.get('number', 'N/A')
+                desc = approval.get('short_description', 'No description')
+                state = approval.get('state', 'N/A')
+                created = approval.get('sys_created_on', 'N/A')
+                
+                table_html += f'''
+                            <tr>
+                                <td><strong>{number}</strong></td>
+                                <td>{desc}</td>
+                                <td><span class="state-badge">{state}</span></td>
+                                <td>{created}</td>
+                                <td><button class="view-btn" onclick="window.open('{INSTANCE}/sysapproval_approver.do?sysparm_query=number={number}', '_blank')">View</button></td>
+                            </tr>
+                '''
+            
+            table_html += '''
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <style>
+                .approvals-container { margin: 10px 0; }
+                .approvals-container h3 { margin-bottom: 15px; color: #333; }
+                .table-responsive { overflow-x: auto; }
+                .approvals-table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; }
+                .approvals-table th { background: #031f4a; color: white; padding: 12px; text-align: left; font-weight: 600; }
+                .approvals-table td { padding: 12px; border-bottom: 1px solid #e0e0e0; }
+                .approvals-table tr:hover { background: #f8f9fa; }
+                .state-badge { padding: 4px 8px; border-radius: 4px; font-size: 0.85rem; font-weight: 500; background: #ffc107; color: #333; }
+                .view-btn { background: #007bff; color: white; border: none; padding: 6px 16px; border-radius: 4px; cursor: pointer; font-weight: 500; transition: all 0.2s; }
+                .view-btn:hover { background: #0056b3; transform: translateY(-1px); box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+            </style>
+            '''
+            
+            return jsonify({"answer": table_html, "disable_copy": True})
+        else:
+            return jsonify({"answer": f"❌ Error fetching approvals: Status {response.status_code}"})
+            
+    except Exception as e:
+        print(f"Error fetching approvals: {e}")
+        return jsonify({"answer": f"❌ Error connecting to ServiceNow: {str(e)}"})
+
 def check_schedule_conflict(user_input):
     """Check if proposed date conflicts with freeze periods in ServiceNow or CSV."""
     import re
@@ -627,7 +801,11 @@ def ask_question():
             risk="Low"
         )
 
-    # 3. Draft Email Intent
+    # 3. Pending Approvals Intent
+    if any(keyword in lower_q for keyword in ["pending approval", "my approval", "approvals", "need to approve", "approval request"]):
+        return get_pending_approvals()
+
+    # 4. Draft Email Intent
     if "draft" in lower_q and ("email" in lower_q or "communication" in lower_q or "template" in lower_q):
         topic = "Change Request"
         if "for" in lower_q:
@@ -636,11 +814,11 @@ def ask_question():
             topic = question.split("about", 1)[1].strip()
         return generate_email_draft(topic)
 
-    # 4. Risk Scoring Intent
+    # 5. Risk Scoring Intent
     if "risk" in lower_q and ("score" in lower_q or "analyze" in lower_q or "evaluate" in lower_q or "assess" in lower_q):
         return analyze_risk_score(question)
 
-    # 5. Schedule Conflict Detection Intent
+    # 6. Schedule Conflict Detection Intent
     if any(keyword in lower_q for keyword in ["schedule", "plan for", "implement on", "can i", "available"]):
         # Check if there's a date reference
         has_date = re.search(r'\d{4}-\d{1,2}-\d{1,2}', question) or \
@@ -650,7 +828,7 @@ def ask_question():
         if has_date:
             return check_schedule_conflict(question)
 
-    # 6. Enhanced Chart/Stats Intent  
+    # 7. Enhanced Chart/Stats Intent  
     chart_keywords = ["chart", "graph", "stats", "breakdown", "metrics", "trend", "workload", "how many", "show", "display", "visualize"]
     if any(x in lower_q for x in chart_keywords):
         if "risk" in lower_q:
