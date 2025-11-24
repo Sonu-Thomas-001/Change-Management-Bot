@@ -38,16 +38,28 @@ body {
 
 /* --- HEADER --- */
 .chat-header {
-    background: var(--primary-color);
-    color: white;
+    background: white;
+    color: #333;
     padding: 15px 20px;
     flex-shrink: 0;
+    border-bottom: 5px solid #031f4a;
+    box-shadow: 0 2px 8px rgba(0,123,255,0.1);
+}
+
+.chat-header p {
+    color: #666;
 }
 
 .header-content {
     display: flex;
     justify-content: space-between;
     align-items: center;
+}
+
+.logo {
+    height: 50px;
+    max-width: 200px;
+    object-fit: contain;
 }
 
 .header-actions {
@@ -57,7 +69,7 @@ body {
 }
 
 .analytics-link {
-    color: white;
+    color: #007bff;
     text-decoration: none;
     font-size: 0.9rem;
     opacity: 0.9;
@@ -66,7 +78,7 @@ body {
 #clear-btn {
     background: none;
     border: none;
-    color: white;
+    color: #666;
     cursor: pointer;
     opacity: 0.8;
     transition: opacity 0.2s;
@@ -286,11 +298,11 @@ body {
 #export-pdf-btn {
     background: none;
     border: none;
-    color: white;
+    color: #666;
     cursor: pointer;
     opacity: 0.8;
     transition: opacity 0.2s;
-    padding: 0; /* Ensures the button sits neatly next to the others */
+    padding: 0;
     margin: 0;
 }
 #export-pdf-btn:hover { opacity: 1; }
