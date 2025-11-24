@@ -35,7 +35,16 @@ retriever = None
 
 # --- Helper Functions: Logging ---
 def log_interaction(question, answer):
-    status = "Answered" 
+    # Define triggers for unanswered queries
+    low_confidence_triggers = ["i don't know", "i'm not sure", "no information found", "apologies", "sorry", "cannot answer", "do not have information"]
+    
+    # Default status
+    status = "Answered"
+    
+    # Check if answer contains any low confidence triggers
+    if any(trigger in answer.lower() for trigger in low_confidence_triggers):
+        status = "Unanswered"
+    
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     file_exists = os.path.isfile(LOG_FILE)
     try:
