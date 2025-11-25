@@ -1,239 +1,67 @@
-# Quick Test Questions - 3 Per Feature
+# 🧪 Comprehensive Test Questions
 
-Copy and paste these questions to test each feature.
+Use these questions to verify the functionality of all bot features.
 
----
+## 1. Scheduled Changes & Export (New)
+*Query planned changes by time and topic, and export to Excel.*
+1.  "What changes are planned for **today**?"
+2.  "Show me **database** changes scheduled for **this weekend**."
+3.  "List all **completed** changes from **last month**."
+4.  "Are there any **upcoming** network changes?"
+5.  "**Export** the list of upcoming oracle changes."
 
-## 1. BASIC Q&A (Knowledge Base)
-```
-What is a change request?
-```
-```
-Explain the change approval process
-```
-```
-What are the types of changes?
-```
+## 2. Analytics & Visualizations
+*View charts and statistics about change requests.*
+1.  "Show me the **query volume trends**."
+2.  "Display a **risk breakdown** chart."
+3.  "Show me change request **statistics**."
+4.  "Visualize the **workload** distribution."
+5.  "Give me a **breakdown** of changes by priority."
 
----
+## 3. Smart Change Creation
+*Interactively create new change requests.*
+1.  "I want to **create a change request** for a server reboot."
+2.  "**Schedule** a new database upgrade."
+3.  "Help me **plan** a firewall update."
+4.  "**Create change**: Update load balancer configuration."
+5.  "I need to **deploy** a security patch."
 
-## 2. GREETINGS
-```
-Hi
-```
-```
-Hello
-```
-```
-Good morning
-```
+## 4. Ticket Status & Details
+*Check the status of specific incidents or changes.*
+1.  "What is the status of **CHG0030002**?"
+2.  "Get details for incident **INC0010005**."
+3.  "Show me info about **CHG0040001**."
+4.  "Who is assigned to **INC0020003**?"
+5.  "Check ticket **CHG0030001**."
 
----
+## 5. Approvals & Tasks
+*Manage your pending work.*
+1.  "Show my **pending approvals**."
+2.  "Do I have any **approvals** waiting?"
+3.  "List my **pending tasks**."
+4.  "What **tasks** are assigned to me?"
+5.  "Check for **outstanding approvals**."
 
-## 3. MULTI-LANGUAGE SUPPORT
-```
-परिवर्तन प्रबंधन क्या है?
-```
-```
-¿Qué es la gestión del cambio?
-```
-```
-Qu'est-ce que la gestion du changement?
-```
+## 6. Schedule Conflict Detection
+*Check if a specific time slot is safe for a change.*
+1.  "Can I schedule a change for **tomorrow at 2 PM**?"
+2.  "Is **this weekend** free for a deployment?"
+3.  "Check schedule availability for **next Monday**."
+4.  "Are there any conflicts on **Friday afternoon**?"
+5.  "Is **2025-11-30** a good time for maintenance?"
 
----
+## 7. Email Drafting
+*Generate communication drafts for changes.*
+1.  "**Draft an email** for CHG0030002."
+2.  "Write a **communication** for the database upgrade."
+3.  "**Compose an email** to stakeholders about the network outage."
+4.  "Prepare a **notification** for CHG0040001."
+5.  "**Draft email**: Server maintenance completed."
 
-## 4. TICKET STATUS LOOKUP
-```
-Check status of CR-123
-```
-```
-What's the status of CHG-456?
-```
-```
-Show me ticket MOCK-789
-```
-
----
-
-## 5. CREATE CHANGE REQUEST
-```
-Create a change request for upgrading production database
-```
-```
-Create change request: Deploy security patch to web servers
-```
-```
-Create ticket for network firewall update
-```
-
----
-
-## 6. PENDING APPROVALS ⭐
-```
-Show my pending approvals
-```
-```
-What approvals do I have?
-```
-```
-List my pending approval requests
-```
-
----
-
-## 7. PENDING TASKS ⭐
-```
-Show my pending tasks
-```
-```
-What tasks am I assigned to?
-```
-```
-List my task list
-```
-
----
-
-## 8. CHARTS - RISK
-```
-Show chart of changes by risk
-```
-```
-Display risk breakdown
-```
-```
-Visualize change requests by risk level
-```
-
----
-
-## 9. CHARTS - PRIORITY
-```
-Show stats by priority
-```
-```
-Display priority breakdown
-```
-```
-How many changes per priority?
-```
-
----
-
-## 10. CHARTS - STATE
-```
-Show change request status
-```
-```
-Display breakdown by state
-```
-```
-How many changes in each state?
-```
-
----
-
-## 11. CHARTS - MONTHLY TREND
-```
-Show monthly trend of changes
-```
-```
-Display changes over time
-```
-```
-Visualize monthly change volume
-```
-
----
-
-## 12. CHARTS - APPROVAL RATE
-```
-Show approved vs rejected changes
-```
-```
-Display approval rate comparison
-```
-```
-How many approved vs rejected?
-```
-
----
-
-## 13. EMAIL DRAFT GENERATION
-```
-Draft an email for scheduled maintenance on November 30th
-```
-```
-Create email template about database migration
-```
-```
-Generate notification for system downtime
-```
-
----
-
-## 14. RISK ASSESSMENT
-```
-Analyze risk for: Updating production database schema during peak business hours
-```
-```
-Assess risk: Deploying new version without rollback plan
-```
-```
-Evaluate risk for emergency firewall change
-```
-
----
-
-## 15. SCHEDULE CONFLICT DETECTION
-```
-Can I schedule a change on December 25, 2025?
-```
-```
-Is November 28 available for changes?
-```
-```
-Plan for 2025-12-25
-```
-
----
-
-## 🎯 QUICK 5-MINUTE TEST
-
-Run these 10 questions in sequence:
-
-1. `Hi`
-2. `What is change management?`
-3. `Show my pending approvals`
-4. `Show my pending tasks`
-5. `Create a change request for server upgrade`
-6. `Show stats by priority`
-7. `Draft an email for maintenance`
-8. `Analyze risk for: Update database during business hours`
-9. `Can I schedule change on December 25, 2025?`
-10. `Show monthly trend of changes`
-
----
-
-## 📊 ALL FEATURES AT A GLANCE
-
-| Feature | Test Question |
-|---------|---------------|
-| Q&A | What is a change request? |
-| Greetings | Hi |
-| Multi-language | परिवर्तन प्रबंधन क्या है? |
-| Ticket Status | Check status of CR-123 |
-| Create Ticket | Create a change request for server upgrade |
-| **Approvals** | **Show my pending approvals** |
-| **Tasks** | **Show my pending tasks** |
-| Risk Chart | Show chart of changes by risk |
-| Priority Chart | Show stats by priority |
-| State Chart | Show change request status |
-| Trend Chart | Show monthly trend of changes |
-| Approval Chart | Show approved vs rejected changes |
-| Email Draft | Draft an email for maintenance |
-| Risk Assessment | Analyze risk for: Update database |
-| Schedule Check | Can I schedule change on December 25? |
-
-**Total Features: 15**
+## 8. General Knowledge (RAG)
+*Ask general questions based on the knowledge base.*
+1.  "What is the **process** for emergency changes?"
+2.  "How do I **rollback** a failed deployment?"
+3.  "Who approves **high risk** changes?"
+4.  "What is the **SLA** for critical incidents?"
+5.  "Explain the **standard change** procedure."
