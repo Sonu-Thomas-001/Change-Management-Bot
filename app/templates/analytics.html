@@ -558,8 +558,14 @@
                     },
                     x: {
                         grid: { display: false },
-                        ticks: { font: { family: 'Inter' }, maxRotation: 0, autoSkip: true, maxTicksLimit: 7 }
-                    }
+                        ticks: { 
+                            font: { family: 'Inter' }, 
+                            maxRotation: 45,      // Allow rotation for better readability
+                            minRotation: 45,      // Consistent 45° angle
+                            autoSkip: true,       // Skip labels if too crowded
+                            maxTicksLimit: 10     // Show more labels (increased from 7)
+    }
+}
                 }
             }
         });

@@ -41,9 +41,9 @@ Timestamp,Question,Status
 2025-11-18 22:54:15,I’m doing a database patch on production.,Answered
 2025-11-18 22:55:19,Teach me the change management lifecycle.,Answered
 2025-11-18 23:08:14,Hi,Answered
-2025-11-18 23:23:41,Hi,Answered
+2025-11-19 23:23:41,Hi,Answered
 2025-11-18 23:26:39,Hi,Answered
-2025-11-21 23:13:24,Hi,Answered
+2025-11-20 23:13:24,Hi,Answered
 2025-11-21 23:13:37,Hi,Answered
 2025-11-21 23:14:21,How many changes were rejected last month?,Unanswered
 2025-11-21 23:25:44,show me the changes in closed state,Unanswered
@@ -107,3 +107,44 @@ Timestamp,Question,Status
 2025-11-24 21:45:30,hi,Answered
 2025-11-24 21:45:31,hi,Answered
 2025-11-24 21:48:15,hi,Answered
+2025-11-24 23:51:33,planned changes for this week,Answered
+2025-11-24 23:52:47,changes for this week,Answered
+2025-11-24 23:54:45,changes for this week,Answered
+2025-11-24 23:56:35,What planned changes are coming in the next week?,Answered
+2025-11-24 23:56:58,List planned changes between 2024-11-28 and 2025-11-30,Answered
+2025-11-24 23:57:21,List planned changes between 2023-01-28 and 2025-11-30,Answered
+2025-11-24 23:59:11,why inida?,Answered
+2025-11-24 23:59:39,inia,Answered
+2025-11-25 00:00:00,where is kerala?,Answered
+2025-11-25 00:00:23,what is india,Answered
+2025-11-25 00:00:35,what is india,Answered
+2025-11-25 00:01:45,what is india,Answered
+2025-11-25 00:02:08,Test Question 2,Answered
+2025-11-25 00:03:01,what is a data?,Answered
+2025-11-25 00:05:04,Test Question 2,Answered
+2025-11-25 00:06:33,uneccesar,Answered
+2025-11-25 00:07:51,pp,Answered
+2025-11-25 00:08:21,goa,Answered
+2025-11-25 21:24:08,where is goa?,Unanswered
+2025-11-25 21:24:36,why kerala is in india?,Unanswered
+2025-11-25 21:25:17,why we need a rollback plan?,Answered
+2025-11-25 21:26:00,why tamil nadud is in india?,Unanswered
+2025-11-25 21:59:36,I need to upgrade the database,Answered
+2025-11-25 22:50:39,What is the change policy?,Answered
+2025-11-25 22:52:23,What is the change policy?,Answered
+2025-11-25 22:53:14,What is the change policy?,Answered
+2025-11-25 22:55:08,What is the change policy?,Answered
+2025-11-25 22:57:43,What is the change policy?,Answered
+2025-11-25 23:01:45,Hi,Answered
+2025-11-25 23:03:16,What is the change policy?,Answered
+2025-11-25 23:05:13,america is in india?,Unanswered
+2025-11-25 23:05:44,america is in india?,Unanswered
+2025-11-25 23:06:12,Why rollback plan is necessary?,Answered
+2025-11-25 23:16:28,hi,Answered
+2025-11-25 23:20:52,What is a change request?,Answered
+2025-11-25 23:20:53,v,Answered
+2025-11-25 23:21:11,Qu'est-ce que la gestion du changement?,Answered
+2025-11-25 23:56:57,y India is back?,Answered
+2025-11-25 23:58:05,america is in india?,Answered
+2025-11-26 00:01:14,china is in india?,Unanswered
+2025-11-26 00:01:38,america is in india?,Unanswered
