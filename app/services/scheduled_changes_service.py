@@ -4,6 +4,8 @@ import datetime
 from flask import jsonify
 from requests.auth import HTTPBasicAuth
 from app.config import Config
+import urllib.parse
+from app.services.export_service import generate_csv_export
 
 
 def parse_time_period(query):
@@ -119,6 +121,93 @@ def parse_time_period(query):
         return (start, end, "Upcoming (Next 7 Days)", False)
 
 
+def extract_keywords(query):
+    """
+    Extract search keywords from query, removing stop words and time terms.
+    """
+    stop_words = [
+        "show", "me", "changes", "change", "requests", "tickets", "list", "get", "find",
+        "planned", "scheduled", "upcoming", "completed", "closed", "for", "the", "in", "on", "at",
+        "today", "tomorrow", "weekend", "week", "month", "year", "next", "last", "this", "previous"
+    ]
+    
+    words = query.lower().split()
+    keywords = [w for w in words if w not in stop_words and len(w) > 2]
+    return keywords
+
+
+def export_scheduled_changes(query):
+    """
+    Export scheduled changes to CSV based on query.
+    """
+    # Reuse the same logic to get the data
+    INSTANCE = Config.SERVICENOW_INSTANCE
+    USER = Config.SERVICENOW_USER
+    PASSWORD = Config.SERVICENOW_PASSWORD
+    
+    start_date, end_date, period_name, is_past = parse_time_period(query)
+    keywords = extract_keywords(query)
+    
+    changes = []
+    
+    # Mock data if ServiceNow is not configured
+    if not all([INSTANCE, USER, PASSWORD]):
+        # Get raw mock data (we need to bypass the HTML formatting of _get_mock_scheduled_changes)
+        # So we'll call a helper that returns list instead of HTML
+        changes = _get_raw_mock_data(is_past)
+    else:
+        # Real API call (simplified version of get_scheduled_changes)
+        try:
+            url = f"{INSTANCE}/api/now/table/change_request"
+            start_str = start_date.strftime("%Y-%m-%d %H:%M:%S")
+            end_str = end_date.strftime("%Y-%m-%d %H:%M:%S")
+            
+            if is_past:
+                sysparm_query = f"start_dateBETWEENjavascript:gs.dateGenerate('{start_str}')@javascript:gs.dateGenerate('{end_str}')^state=3^state=4^state=7"
+            else:
+                sysparm_query = f"start_dateBETWEENjavascript:gs.dateGenerate('{start_str}')@javascript:gs.dateGenerate('{end_str}')"
+            
+            params = {
+                "sysparm_query": sysparm_query,
+                "sysparm_display_value": "true",
+                "sysparm_fields": "number,short_description,state,priority,risk,start_date,end_date,assigned_to",
+                "sysparm_limit": 100
+            }
+            
+            response = requests.get(url, auth=HTTPBasicAuth(USER, PASSWORD), params=params, timeout=10)
+            if response.status_code == 200:
+                changes = response.json().get('result', [])
+        except Exception as e:
+            print(f"Export Error: {e}")
+            return Response("Error generating export", mimetype="text/plain")
+
+    # Filter by keywords
+    if keywords:
+        filtered = []
+        for change in changes:
+            text = (change.get('short_description', '') + " " + change.get('number', '')).lower()
+            if any(k in text for k in keywords):
+                filtered.append(change)
+        changes = filtered
+        
+    # Prepare data for CSV
+    export_data = []
+    for change in changes:
+        export_data.append({
+            "Number": change.get('number', ''),
+            "Description": change.get('short_description', ''),
+            "State": change.get('state', ''),
+            "Priority": change.get('priority', ''),
+            "Risk": change.get('risk', ''),
+            "Start Date": change.get('start_date', ''),
+            "End Date": change.get('end_date', ''),
+            "Assigned To": change.get('assigned_to', '')
+        })
+        
+    filename = f"changes_{period_name.replace(' ', '_')}.csv"
+    return generate_csv_export(export_data, filename)
+
+
 def get_scheduled_changes(query):
     """
     Fetch scheduled or completed changes from ServiceNow based on time period in query.
@@ -136,10 +225,11 @@ def get_scheduled_changes(query):
     
     # Parse time period
     start_date, end_date, period_name, is_past = parse_time_period(query)
+    keywords = extract_keywords(query)
     
     # Mock data if ServiceNow is not configured
     if not all([INSTANCE, USER, PASSWORD]):
-        return _get_mock_scheduled_changes(period_name, is_past)
+        return _get_mock_scheduled_changes(period_name, is_past, keywords)
     
     # Real ServiceNow API call
     try:
@@ -174,7 +264,21 @@ def get_scheduled_changes(query):
                     "answer": f"✅ No changes {'completed' if is_past else 'scheduled'} for **{period_name}**."
                 })
             
-            return _format_changes_table(changes, period_name, is_past, is_mock=False)
+            # Filter by keywords
+            if keywords:
+                filtered = []
+                for change in changes:
+                    text = (change.get('short_description', '') + " " + change.get('number', '')).lower()
+                    if any(k in text for k in keywords):
+                        filtered.append(change)
+                changes = filtered
+                
+                if not changes:
+                     return jsonify({
+                        "answer": f"✅ No changes found for **{period_name}** matching keywords: **{', '.join(keywords)}**."
+                    })
+
+            return _format_changes_table(changes, period_name, is_past, query, is_mock=False)
         else:
             print(f"ServiceNow API Error: Status {response.status_code}")
             return _get_mock_scheduled_changes(period_name, is_past)
@@ -184,13 +288,11 @@ def get_scheduled_changes(query):
         return _get_mock_scheduled_changes(period_name, is_past)
 
 
-def _get_mock_scheduled_changes(period_name, is_past):
-    """Generate mock data for scheduled changes"""
+def _get_raw_mock_data(is_past):
+    """Helper to get raw mock data list"""
     now = datetime.datetime.now()
-    
     if is_past:
-        # Mock completed changes
-        mock_changes = [
+        return [
             {
                 "number": "CHG0030001",
                 "short_description": "Database Backup Verification",
@@ -213,8 +315,7 @@ def _get_mock_scheduled_changes(period_name, is_past):
             }
         ]
     else:
-        # Mock upcoming changes
-        mock_changes = [
+        return [
             {
                 "number": "CHG0040001",
                 "short_description": "Network Switch Upgrade - Building A",
@@ -246,19 +347,44 @@ def _get_mock_scheduled_changes(period_name, is_past):
                 "assigned_to": "Lisa Wong"
             }
         ]
+
+def _get_mock_scheduled_changes(period_name, is_past, keywords=None):
+    """Generate mock data for scheduled changes"""
+    mock_changes = _get_raw_mock_data(is_past)
     
-    return _format_changes_table(mock_changes, period_name, is_past, is_mock=True)
+    # Filter by keywords
+    if keywords:
+        filtered = []
+        for change in mock_changes:
+            text = (change.get('short_description', '') + " " + change.get('number', '')).lower()
+            if any(k in text for k in keywords):
+                filtered.append(change)
+        mock_changes = filtered
+        
+        if not mock_changes:
+             return jsonify({
+                "answer": f"✅ No changes found for **{period_name}** matching keywords: **{', '.join(keywords)}** (Demo Data)."
+            })
+    
+    return _format_changes_table(mock_changes, period_name, is_past, f"changes {period_name}", is_mock=True)
 
 
-def _format_changes_table(changes, period_name, is_past, is_mock=False):
+def _format_changes_table(changes, period_name, is_past, query_text, is_mock=False):
     """Format changes data as HTML table"""
     
     status_text = "Completed" if is_past else "Scheduled"
     mock_note = " (Demo Data)" if is_mock else ""
     
+    # URL encode the query for the export link
+    encoded_query = urllib.parse.quote(query_text)
+    export_link = f"/export_changes?query={encoded_query}"
+    
     table_html = f'''
     <div class="changes-container">
-        <h3>📅 {status_text} Changes for {period_name}{mock_note}</h3>
+        <div style="display: flex; justify-content: space-between; align_items: center; margin-bottom: 10px;">
+            <h3 style="margin: 0;">📅 {status_text} Changes for {period_name}{mock_note}</h3>
+            <a href="{export_link}" target="_blank" class="export-btn">📊 Export to Excel</a>
+        </div>
         <p style="color: #666; margin-bottom: 15px;">Found <strong>{len(changes)}</strong> change request(s)</p>
         <div class="table-responsive">
             <table class="changes-table">
@@ -333,6 +459,20 @@ def _format_changes_table(changes, period_name, is_past, is_mock=False):
         .priority-2 { background: #fd7e14; color: white; }
         .priority-3 { background: #ffc107; color: #333; }
         .priority-4 { background: #28a745; color: white; }
+        .export-btn { 
+            background-color: #28a745; 
+            color: white; 
+            padding: 8px 15px; 
+            text-decoration: none; 
+            border-radius: 5px; 
+            font-weight: bold; 
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: background-color 0.2s;
+        }
+        .export-btn:hover { background-color: #218838; }
     </style>
     '''
     

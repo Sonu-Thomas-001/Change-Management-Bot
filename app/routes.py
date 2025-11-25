@@ -15,7 +15,7 @@ from app.services.data_service import (
 )
 from app.services.rag_service import analyze_risk_score
 import app.services.rag_service as rag_service
-from app.services.scheduled_changes_service import get_scheduled_changes
+from app.services.scheduled_changes_service import get_scheduled_changes, export_scheduled_changes
 
 main_bp = Blueprint('main', __name__)
 
@@ -292,3 +292,14 @@ def analytics():
                            top_keywords=top_keywords,
                            recent_feedback=recent_feedback[:10],
                            escalations=escalations)
+
+@main_bp.route('/export_changes')
+def export_changes():
+    """
+    Export scheduled changes to CSV.
+    """
+    query = request.args.get('query', '')
+    if not query:
+        return "No query provided", 400
+        
+    return export_scheduled_changes(query)
