@@ -15,6 +15,7 @@ from app.services.data_service import (
 )
 from app.services.rag_service import analyze_risk_score
 import app.services.rag_service as rag_service
+from app.services.scheduled_changes_service import get_scheduled_changes
 
 main_bp = Blueprint('main', __name__)
 
@@ -88,7 +89,17 @@ def ask_question():
         if has_date:
             return check_schedule_conflict(question)
 
-    # 8. Enhanced Chart/Stats Intent  
+    # 8. Scheduled Changes Query Intent
+    scheduled_keywords = ["planned", "scheduled", "upcoming", "completed", "closed"]
+    time_keywords = ["today", "tomorrow", "weekend", "week", "month", "changes"]
+    
+    if any(x in lower_q for x in scheduled_keywords) or \
+       ("change" in lower_q and any(x in lower_q for x in time_keywords)):
+        # Check if it's asking for scheduled changes
+        if "change" in lower_q or "changes" in lower_q:
+            return get_scheduled_changes(question)
+
+    # 9. Enhanced Chart/Stats Intent  
     chart_keywords = ["chart", "graph", "stats", "breakdown", "metrics", "trend", "workload", "how many", "show", "display", "visualize"]
     if any(x in lower_q for x in chart_keywords):
         if "risk" in lower_q:
