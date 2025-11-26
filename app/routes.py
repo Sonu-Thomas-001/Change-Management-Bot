@@ -10,9 +10,10 @@ from app.config import Config
 from app.utils import check_schedule_conflict
 from app.services.logging_service import log_interaction, log_feedback, log_escalation
 from app.services.data_service import (
-    get_servicenow_stats, get_ticket_details, create_change_request,
+    get_servicenow_stats, create_change_request,
     get_pending_approvals, get_pending_tasks
 )
+from app.services.ticket_service import get_ticket_details
 from app.services.email_service import generate_email_draft
 from app.services.rag_service import analyze_risk_score
 import app.services.rag_service as rag_service
