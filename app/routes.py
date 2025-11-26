@@ -3,7 +3,7 @@ import re
 import csv
 import datetime
 from collections import Counter, defaultdict
-from flask import Blueprint, render_template, request, jsonify
+from flask import Blueprint, render_template, request, jsonify, session, redirect, url_for, flash
 from langchain_core.messages import HumanMessage, AIMessage
 
 from app.config import Config
@@ -20,12 +20,48 @@ from app.services.validator_service import validate_emergency_change
 
 main_bp = Blueprint('main', __name__)
 
+@main_bp.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        role = request.form.get('role')
+
+        if role == 'User':
+            if username == 'user' and password == 'password':
+                session['user'] = username
+                session['role'] = role
+                return redirect(url_for('main.index'))
+            else:
+                flash('Invalid User credentials')
+        elif role == 'Change Admin':
+            if username == 'admin' and password == 'admin':
+                session['user'] = username
+                session['role'] = role
+                return redirect(url_for('main.analytics'))
+            else:
+                flash('Invalid Admin credentials')
+        else:
+            flash('Invalid Role selected')
+            
+    return render_template('login.html')
+
+@main_bp.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('main.login'))
+
 @main_bp.route('/')
 def index():
-    return render_template('index.html', role='User')
+    if 'user' not in session:
+        return redirect(url_for('main.login'))
+    return render_template('index.html', role=session.get('role'))
 
 @main_bp.route('/ask', methods=['POST'])
 def ask_question():
+    if 'user' not in session:
+        return jsonify({"error": "Unauthorized"}), 401
+
     if not rag_service.rag_chain:
         return jsonify({"error": "Chatbot not initialized."}), 500
 
@@ -181,12 +217,16 @@ def ask_question():
 
 @main_bp.route('/feedback', methods=['POST'])
 def feedback():
+    if 'user' not in session:
+        return jsonify({"error": "Unauthorized"}), 401
     data = request.get_json()
     log_feedback(data.get('type'), data.get('content', ''))
     return jsonify({"status": "success"})
 
 @main_bp.route('/escalate', methods=['POST'])
 def escalate():
+    if 'user' not in session:
+        return jsonify({"error": "Unauthorized"}), 401
     data = request.get_json()
     chat_history = data.get('chat_history', [])
     reason = data.get('reason', 'User Request')
@@ -197,6 +237,9 @@ def escalate():
 
 @main_bp.route('/analytics')
 def analytics():
+    if 'user' not in session or session.get('role') != 'Change Admin':
+        return redirect(url_for('main.login'))
+        
     logs = []
     unanswered_list = []
     all_questions = []
@@ -313,6 +356,9 @@ def export_changes():
     """
     Export scheduled changes to CSV.
     """
+    if 'user' not in session:
+        return redirect(url_for('main.login'))
+        
     query = request.args.get('query', '')
     if not query:
         return "No query provided", 400
