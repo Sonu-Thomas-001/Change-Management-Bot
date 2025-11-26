@@ -11,8 +11,9 @@ from app.utils import check_schedule_conflict
 from app.services.logging_service import log_interaction, log_feedback, log_escalation
 from app.services.data_service import (
     get_servicenow_stats, get_ticket_details, create_change_request,
-    generate_email_draft, get_pending_approvals, get_pending_tasks
+    get_pending_approvals, get_pending_tasks
 )
+from app.services.email_service import generate_email_draft
 from app.services.rag_service import analyze_risk_score
 import app.services.rag_service as rag_service
 from app.services.scheduled_changes_service import get_scheduled_changes, export_scheduled_changes
@@ -124,7 +125,7 @@ def ask_question():
             topic = question.split("for", 1)[1].strip()
         elif "about" in lower_q:
             topic = question.split("about", 1)[1].strip()
-        return generate_email_draft(topic)
+        return generate_email_draft(topic, question)
 
     # 6. Risk Scoring Intent
     if "risk" in lower_q and ("score" in lower_q or "analyze" in lower_q or "evaluate" in lower_q or "assess" in lower_q):

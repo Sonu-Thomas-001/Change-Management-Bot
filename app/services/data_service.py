@@ -239,35 +239,7 @@ def create_change_request(description, impact="Low", risk="Low"):
     except Exception as e:
         return jsonify({"answer": f"API Error: {str(e)}"})
 
-def generate_email_draft(topic):
-    subject = f"Important Update: {topic}"
-    body = (
-        f"Hello Team,\n\n"
-        f"This is an announcement regarding {topic}.\n\n"
-        f"Please be advised that...\n\n"
-        f"Best regards,\n"
-        f"[Your Name]"
-    )
-    
-    import urllib.parse
-    subject_enc = urllib.parse.quote(subject)
-    body_enc = urllib.parse.quote(body)
-    
-    mailto_link = f"mailto:?subject={subject_enc}&body={body_enc}"
-    
-    button_html = (
-        f"<br><br>"
-        f"<a href='{mailto_link}' "
-        f"style='background-color: #007bff; color: white; padding: 10px 20px; "
-        f"text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;'>"
-        f"📧 Draft in Outlook"
-        f"</a>"
-    )
-    
-    return jsonify({
-        "answer": f"Here is a draft for your announcement regarding **{topic}**:{button_html}",
-        "disable_copy": True
-    })
+
 
 def get_pending_approvals():
     """
