@@ -56,6 +56,10 @@ def initialize_rag_chain():
             "Your purpose is to answer questions about change management based on the provided context. "
             "Your knowledge base consists of multiple documents (SOPs, Policies, KB Articles).\n\n"
             
+            "--- PERSONALITY & TONE ---\n"
+            "{persona}\n"
+            "{emotion_context}\n\n"
+
             "--- MULTI-LANGUAGE RULES (CRITICAL) ---\n"
             "1. **Detect Language:** Automatically detect the language of the user's question.\n"
             "2. **Respond in Kind:** You MUST answer in the EXACT SAME language as the user's question. (e.g., If user asks in Hindi, answer in Hindi).\n"
@@ -86,6 +90,57 @@ def initialize_rag_chain():
 
     except Exception as e:
         print(f"Error during initialization: {e}")
+
+def detect_emotion(query):
+    """
+    Detects frustration or negative emotion in the user's query.
+    """
+    query_lower = query.lower()
+    triggers = [
+        "stuck", "error", "fail", "broken", "not working", "frustrated", 
+        "annoying", "help", "confused", "wrong", "unable", "can't", "cannot"
+    ]
+    
+    if any(trigger in query_lower for trigger in triggers):
+        return "⚠️ USER SEEMS FRUSTRATED. Be empathetic, patient, and reassuring. Start by acknowledging their difficulty."
+    return ""
+
+def answer_question(question, chat_history, user_role="User"):
+    """
+    Invokes the RAG chain with dynamic personality and emotion context.
+    """
+    if not rag_chain:
+        return {"answer": "System is initializing, please try again in a moment."}
+
+    # 1. Determine Persona
+    if user_role == "Change Admin":
+        persona = (
+            "**ROLE:** You are speaking to a **Change Administrator** (Expert). "
+            "Be concise, professional, and technical. Focus on efficiency, compliance, and risk details. "
+            "Assume they know the basics."
+        )
+    else:
+        persona = (
+            "**ROLE:** You are speaking to a **Standard User**. "
+            "Be friendly, helpful, and patient. Explain technical terms simply. "
+            "Guide them step-by-step."
+        )
+
+    # 2. Detect Emotion
+    emotion_context = detect_emotion(question)
+
+    # 3. Invoke Chain
+    try:
+        response = rag_chain.invoke({
+            "input": question, 
+            "chat_history": chat_history,
+            "persona": persona,
+            "emotion_context": emotion_context
+        })
+        return response
+    except Exception as e:
+        print(f"RAG Invoke Error: {e}")
+        return {"answer": "I encountered an error processing your request."}
 
 def analyze_risk_score(plan_text):
     if not llm or not retriever:

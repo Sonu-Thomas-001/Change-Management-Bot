@@ -195,7 +195,10 @@ def ask_question():
             chat_history.append(AIMessage(content=f"[{chart_text}]"))
 
     try:
-        response = rag_service.rag_chain.invoke({"input": question, "chat_history": chat_history})
+        # Pass user role to the RAG service for personality adaptation
+        user_role = session.get('role', 'User')
+        
+        response = rag_service.answer_question(question, chat_history, user_role)
         answer = response.get("answer", "Sorry, something went wrong.")
         log_interaction(question, answer)
         
