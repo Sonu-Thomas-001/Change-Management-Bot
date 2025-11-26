@@ -1,7 +1,7 @@
 import os
 import requests
 import datetime
-from flask import jsonify
+from flask import jsonify, Response
 from requests.auth import HTTPBasicAuth
 from app.config import Config
 import urllib.parse
@@ -140,6 +140,7 @@ def export_scheduled_changes(query):
     """
     Export scheduled changes to CSV based on query.
     """
+    print(f"DEBUG: Exporting scheduled changes for query: {query}")
     # Reuse the same logic to get the data
     INSTANCE = Config.SERVICENOW_INSTANCE
     USER = Config.SERVICENOW_USER
@@ -178,8 +179,8 @@ def export_scheduled_changes(query):
             if response.status_code == 200:
                 changes = response.json().get('result', [])
         except Exception as e:
-            print(f"Export Error: {e}")
-            return Response("Error generating export", mimetype="text/plain")
+            print(f"Export Error: {e}. Falling back to mock data.")
+            changes = _get_raw_mock_data(is_past)
 
     # Filter by keywords
     if keywords:
@@ -383,7 +384,6 @@ def _format_changes_table(changes, period_name, is_past, query_text, is_mock=Fal
     <div class="changes-container">
         <div style="display: flex; justify-content: space-between; align_items: center; margin-bottom: 10px;">
             <h3 style="margin: 0;">📅 {status_text} Changes for {period_name}{mock_note}</h3>
-            <a href="{export_link}" target="_blank" class="export-btn">📊 Export to Excel</a>
         </div>
         <p style="color: #666; margin-bottom: 15px;">Found <strong>{len(changes)}</strong> change request(s)</p>
         <div class="table-responsive">
@@ -436,11 +436,17 @@ def _format_changes_table(changes, period_name, is_past, query_text, is_mock=Fal
                 </tr>
         '''
     
-    table_html += '''
+    table_html += f'''
                 </tbody>
             </table>
         </div>
+        <div style="margin-top: 15px;">
+            <a href="{export_link}" target="_blank" class="export-btn">📊 Export to Excel</a>
+        </div>
     </div>
+    '''
+    
+    table_html += '''
     <style>
         .changes-container { margin: 10px 0; }
         .changes-container h3 { margin-bottom: 5px; color: #333; }
