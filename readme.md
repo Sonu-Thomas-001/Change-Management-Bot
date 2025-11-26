@@ -1,163 +1,202 @@
 <div align="center">
 
-  <h1>🤖 Change Management Assistant</h1>
+  <img src="https://capsule-render.vercel.app/api?type=waving&color=0:000000,100:2c3e50&height=300&section=header&text=Change%20Management%20Assistant&fontSize=50&fontColor=ffffff&animation=fadeIn&fontAlignY=38&desc=Enterprise%20SOP%20Intelligence%20%7C%20Powered%20by%20Gemini%20AI&descAlignY=55&descAlign=50" alt="Change Management Assistant Header" width="100%"/>
+
+  <br/>
+
+  [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
+  [![Flask](https://img.shields.io/badge/Flask-Server-000000?style=for-the-badge&logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
+  [![LangChain](https://img.shields.io/badge/LangChain-RAG-1C3C3C?style=for-the-badge&logo=chainlink&logoColor=white)](https://www.langchain.com/)
+  [![Gemini](https://img.shields.io/badge/Google%20Gemini-1.5%20Flash-8E75B2?style=for-the-badge&logo=google&logoColor=white)](https://deepmind.google/technologies/gemini/)
+  [![ChromaDB](https://img.shields.io/badge/ChromaDB-Vector%20Store-FF5F00?style=for-the-badge)](https://www.trychroma.com/)
+  [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](./LICENSE)
+
+  <br/>
   
-  <p>
-    <strong>An Enterprise-Grade AI Chatbot for SOP Intelligence</strong>
+  <p align="center">
+    <a href="#-vision">Vision</a> •
+    <a href="#-intelligence">Intelligence</a> •
+    <a href="#-auditor-core">Auditor Core</a> •
+    <a href="#-deployment">Deployment</a> •
+    <a href="#-roadmap">Roadmap</a>
   </p>
-
-  <p>
-    <a href="#-overview">Overview</a> •
-    <a href="#-key-features">Features</a> •
-    <a href="#-architecture">Architecture</a> •
-    <a href="#-installation">Installation</a> •
-    <a href="#-usage-guide">Usage</a>
-  </p>
-
-  ![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)
-  ![Flask](https://img.shields.io/badge/Flask-Server-000000?style=for-the-badge&logo=flask&logoColor=white)
-  ![LangChain](https://img.shields.io/badge/LangChain-RAG-1C3C3C?style=for-the-badge&logo=chainlink&logoColor=white)
-  ![Gemini](https://img.shields.io/badge/Google%20Gemini-1.5%20Flash-8E75B2?style=for-the-badge&logo=google&logoColor=white)
-  ![ChromaDB](https://img.shields.io/badge/ChromaDB-Vector%20Store-FF5F00?style=for-the-badge)
 
 </div>
 
 ---
 
-## 📖 Overview
+## 🌌 Vision
 
-The **Change Management Assistant** is a secure, conversational AI tool designed to democratize access to complex organizational knowledge. 
+The **Change Management Assistant** is not just a chatbot; it's a **cognitive layer** for your organizational knowledge. 
 
-By leveraging **Retrieval-Augmented Generation (RAG)**, it transforms static Standard Operating Procedure (SOP) documents into an interactive expert. Unlike standard search, it understands context, handles follow-up questions, and provides precise answers sourced **strictly** from approved documentation.
+By fusing **Retrieval-Augmented Generation (RAG)** with **Agentic Workflows**, it transforms static, dusty PDF documents into a living, breathing expert system. It doesn't just answer questions—it **audits processes**, **identifies gaps**, and **secures compliance** in real-time.
 
-> **New in v2.0:** Now features Role-Based Access Control (RBAC), a full Analytics Dashboard, and Local Embeddings for enhanced privacy and speed.
+> *"The future of work is not searching for answers, but having them delivered before you ask."*
+
+---
+
+## 🧠 Intelligence Architecture
+
+### **Core Cognitive Engine**
+| Component | Technology | Role |
+| :--- | :--- | :--- |
+| **LLM** | `Google Gemini 1.5 Flash` | The reasoning brain. Fast, multimodal, and context-aware. |
+| **Memory** | `ChromaDB` (Local) | Vector storage for semantic search and retrieval. |
+| **Orchestrator** | `LangChain` | Manages the flow between user, data, and AI. |
+| **Embeddings** | `HuggingFace` | Privacy-first, local text-to-vector conversion. |
+
+### **Key Capabilities**
+*   **Zero-Hallucination RAG:** Answers are strictly grounded in your provided documentation.
+*   **Role-Based Neural Access:** Adapts responses based on user hierarchy (Employee vs. Admin).
+*   **Self-Healing Knowledge:** Automatically flags "Unanswered Questions" to highlight SOP gaps.
 
 ---
 
-## ✨ Key Features
+## ⚙️ Mechanics: The Lifecycle of a Query
 
-### 🧠 **AI & Intelligence**
-* **RAG Architecture:** Grounds answers in your specific PDF documents. Zero hallucinations.
-* **Local Embeddings:** Uses `HuggingFace` embeddings locally on your CPU. Fast, free, and private.
-* **Conversational Memory:** Remembers chat history for natural follow-up questions.
-* **Source Citation:** Cites the specific document used for every answer.
+Understanding the flow of intelligence within the system.
 
-### 🛡️ **Security & RBAC**
-* **Role-Based Login:**
-    * **Employees:** Access to Chat interface only.
-    * **Admins:** Access to Chat + Analytics Dashboard.
-* **Context-Aware Responses:** The AI adjusts its answer complexity based on the logged-in user's role.
+### **1. Knowledge Ingestion (The Learning Phase)**
+Before the bot answers a single question, it must "learn" your SOPs.
+1.  **Extraction:** `PyPDFLoader` strips text from your PDF documents in `/docs`.
+2.  **Chunking:** The text is split into manageable "cognitive blocks" (1000 characters) with overlap to preserve context.
+3.  **Vectorization:** `HuggingFaceEmbeddings` converts these text blocks into 384-dimensional vector arrays (mathematical representations of meaning).
+4.  **Storage:** These vectors are indexed in `ChromaDB` for millisecond-latency retrieval.
 
-### 📊 **Analytics & Insights**
-* **Live Dashboard:** Visual trend charts of daily queries.
-* **Gap Analysis:** Automatically logs "Unanswered Questions" to identify holes in your SOPs.
-* **User Feedback:** Tracks "Thumbs Up/Down" ratings to measure satisfaction.
-* **Trend Spotting:** Word cloud analysis of most frequently asked topics.
+### **2. The Neural Router (The Decision Phase)**
+When a user types a message, the **Intent Recognition Engine** analyzes the semantic intent:
+*   **Intent: "Audit..."** → Routes to **Auditor Core** for SQL-like ticket analysis.
+*   **Intent: "Show me..."** → Routes to **Analytics Engine** for data visualization.
+*   **Intent: "How do I..."** → Routes to **RAG Engine** for knowledge retrieval.
 
-### 💻 **Modern UX/UI**
-* **Rich Formatting:** Markdown support (Tables, **Bold**, Lists).
-* **Voice Interaction:** Speech-to-Text integration for hands-free use.
-* **Productivity Tools:** One-click **PDF Export** of chat history, **Copy** response, and **Edit** query.
-* **Responsive Design:** Works seamlessly on Desktop and Mobile.
+### **3. Retrieval & Synthesis (The Answering Phase)**
+If routed to the RAG Engine:
+1.  **Query Embedding:** The user's question is converted into a vector.
+2.  **Semantic Search:** The system scans `ChromaDB` for the top 3 most similar document chunks.
+3.  **Context Injection:** These chunks are appended to a strict "System Prompt" that forbids hallucination.
+4.  **Generation:** `Gemini 1.5 Flash` synthesizes the retrieved facts into a coherent, human-like answer.
+5.  **Citation:** The source document and page number are appended to the final response.
 
 ---
-    
-🚀 Installation
-Prerequisites
-Python 3.10+
 
-A Google Gemini API Key (Get one here)
+## 🚨 Auditor Core: The Compliance Sentinel
 
-1. Clone the Repository
-Bash
+A state-of-the-art module designed to enforce SOPs automatically.
 
-git clone [https://github.com/YourUsername/Change-Management-Bot.git](https://github.com/YourUsername/Change-Management-Bot.git)
+<div align="center">
+  <table>
+    <tr>
+      <td align="center"><strong>⚡ Instant Audit</strong></td>
+      <td align="center"><strong>🚦 Visual Reporting</strong></td>
+      <td align="center"><strong>📥 Data Extraction</strong></td>
+    </tr>
+    <tr>
+      <td>Analyzes emergency tickets in milliseconds against strict policy rules.</td>
+      <td>Generates beautiful, traffic-light coded HTML reports instantly.</td>
+      <td>One-click export to <code>.csv</code> for deep-dive analytics.</td>
+    </tr>
+  </table>
+</div>
+
+**Usage:**
+> User: *"Audit all emergency changes from yesterday"*
+>
+> **Bot:** *Scans tickets... Checks Priority... Verifies Justification...* -> **Generates Report**
+
+---
+
+## 💻 Modern Experience
+
+We believe enterprise tools should feel like consumer apps.
+
+*   **Glassmorphism UI:** A clean, modern interface designed for focus.
+*   **Voice-First Interaction:** Integrated Speech-to-Text for hands-free operation.
+*   **Dynamic Analytics Dashboard:**
+    *   *Query Volume Trends*
+    *   *Sentiment Analysis (Thumbs Up/Down)*
+    *   *Topic Word Clouds*
+
+---
+
+## 🚀 Deployment Protocol
+
+### **Prerequisites**
+*   Python 3.10+
+*   Google Gemini API Key
+
+### **Sequence**
+
+```bash
+# 1. Clone the Neural Network
+git clone https://github.com/YourUsername/Change-Management-Bot.git
 cd Change-Management-Bot
-2. Set Up Virtual Environment
-Bash
 
-# Windows
+# 2. Initialize Virtual Environment
 python -m venv venv
-.\venv\Scripts\activate
+.\venv\Scripts\activate  # Windows
+# source venv/bin/activate # Mac/Linux
 
-# Mac/Linux
-python3 -m venv venv
-source venv/bin/activate
-3. Install Dependencies
-Bash
-
+# 3. Install Dependencies
 pip install -r requirements.txt
-4. Configure Environment
-Create a file named .env in the root directory:
 
-Ini, TOML
+# 4. Inject Credentials
+# Create .env file: GOOGLE_API_KEY="your_key_here"
 
-GOOGLE_API_KEY="paste_your_api_key_here"
-5. Add Documents
-Place your PDF files (SOPs, Policies) inside the docs/ folder.
+# 5. Ingest Knowledge
+# Place PDF SOPs into /docs folder
 
-⚡ Usage Guide
-Start the Application
-Bash
-
+# 6. Ignite System
 python app.py
-Wait for the "Initializing RAG Chain..." message. The first run may take a moment to download the local embedding model.
+```
 
-1. Login
-Navigate to http://127.0.0.1:5000.
+---
 
-Login as Employee: Access the chat interface to ask questions.
+## �️ Security Protocol
 
-Login as Admin: Access the chat + the Analytics link in the header.
+In an era of data sovereignty, privacy is paramount.
 
-2. Chatting
-Ask Questions: "What is the template for a software update?"
+*   **Local Vectorization:** All document embeddings are generated locally using `HuggingFace` models. Your proprietary SOPs never leave your server during indexing.
+*   **Ephemeral Context:** User queries are processed in-memory.
+*   **RBAC Enforcement:** Strict logical separation between `Employee` and `Admin` capabilities.
 
-Voice: Click the 🎙️ icon to speak.
+---
 
-Edit: Click the ✏️ icon on your message to fix a typo.
+## 🔧 Troubleshooting & Diagnostics
 
-Export: Click the 📄 icon in the header to download the chat as a PDF.
+**System not igniting?**
 
-3. Analytics (Admin Only)
-Click "📊 Analytics" in the header to view:
+*   **Error:** `GoogleGenAIError: Invalid API Key`
+    *   *Fix:* Ensure your `.env` file is present and the key is valid.
+*   **Error:** `ChromaDB Connection Failed`
+    *   *Fix:* Delete the `chroma_db` folder to force a fresh re-indexing of your documents.
+*   **Issue:** "The bot is hallucinating."
+    *   *Fix:* The RAG temperature is set to `0.3` for precision. Ensure your PDF contains the specific answer.
 
-Total query volume vs. Unanswered queries.
+---
 
-Line chart of usage over time.
+## 🤝 Contributing to the Hive
 
-User satisfaction (Thumbs Up vs. Down).
+We welcome architects of the future.
 
-Specific lists of gaps in your documentation.
+1.  **Fork** the neural repository.
+2.  **Branch** your feature (`git checkout -b feature/neural-upgrade`).
+3.  **Commit** your enhancements.
+4.  **Push** and open a **Pull Request**.
 
-📂 Project Structure
-Plaintext
+---
 
-/Change-Management-Bot
-│
-├── app.py                 # Main Application Logic (Flask + RAG + Analytics)
-├── requirements.txt       # Python Dependencies
-├── .env                   # API Keys (Ignored by Git)
-├── README.md              # Project Documentation
-│
-├── docs/                  # Knowledge Base
-│   └── SOP.pdf            # Your Source Documents
-│
-├── static/                # Frontend Assets
-│   ├── style.css          # Responsive Styling & Animations
-│   └── script.js          # Logic for Chat, Voice, Feedback, PDF
-│
-└── templates/             # HTML Views
-    ├── index.html         # Main Chat Interface
-    ├── login.html         # Authentication Page
-    └── analytics.html     # Admin Dashboard
-🔮 Future Roadmap
-[ ] Active Directory Integration: Replace simple login with true SSO (LDAP/OAuth).
+We are building the autonomous enterprise.
 
-[ ] Admin Upload Portal: Allow Admins to upload/delete PDFs via the UI.
+- [ ] **Neural Hive Mind:** Active Directory (SSO) Integration for seamless identity.
+- [ ] **Knowledge Osmosis:** Admin Portal for drag-and-drop PDF ingestion.
+- [ ] **Omnichannel Presence:** Native integration with MS Teams & Slack.
+- [ ] **Hyper-Specialization:** Fine-tuning Gemini on your specific industry jargon.
 
-[ ] Teams/Slack Integration: Deploy the bot where users work.
+---
 
-[ ] Fine-Tuning: Fine-tune the Gemini model on specific enterprise jargon.
-
-<div align="center"> <sub>Built with ❤️ using Python, LangChain, and Gemini.</sub> </div>
+<div align="center">
+  <br/>
+  <sub>Designed & Engineered for the Future of Work.</sub>
+  <br/>
+  <sub>Built with ❤️ using <strong>Python</strong>, <strong>LangChain</strong>, and <strong>Gemini</strong>.</sub>
+</div>
