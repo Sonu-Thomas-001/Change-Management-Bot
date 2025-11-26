@@ -16,6 +16,7 @@ from app.services.data_service import (
 from app.services.rag_service import analyze_risk_score
 import app.services.rag_service as rag_service
 from app.services.scheduled_changes_service import get_scheduled_changes, export_scheduled_changes
+from app.services.validator_service import validate_emergency_change
 
 main_bp = Blueprint('main', __name__)
 
@@ -35,13 +36,20 @@ def ask_question():
     if not question:
         return jsonify({"error": "No question provided."}), 400
 
+    lower_q = question.lower()
+
+    # --- FEATURE: Emergency Change Validator ---
+    if "emergency" in lower_q and ("change" in lower_q or "create" in lower_q or "raise" in lower_q or "draft" in lower_q):
+        validation_result = validate_emergency_change(question)
+        return jsonify({"answer": validation_result["message"]})
+
     # --- FEATURE: Smart Change Creator ---
     from app.services.smart_change_creator import process_smart_change_intent
     smart_response = process_smart_change_intent(question)
     if smart_response:
         return smart_response
-
-    lower_q = question.lower()
+    
+    # 1. Ticket Status Lookup
     
     # 1. Ticket Status Lookup
     ticket_match = re.search(r"\b(cr|chg|mock)[-]?(\d+)\b", lower_q)
