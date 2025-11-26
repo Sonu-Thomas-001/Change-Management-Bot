@@ -114,3 +114,172 @@ def validate_emergency_change(text):
         "valid": True,
         "message": "✅ Validation Successful. Proceed to submit."
     }
+
+def audit_emergency_changes(query):
+    """
+    Audits emergency changes based on a timeframe query.
+    Returns an HTML table with the audit results.
+    """
+    import datetime
+    
+    # 1. Mock Data (Emergency Tickets)
+    # In a real scenario, this would come from ServiceNow
+    mock_tickets = [
+        {
+            "number": "CHG005001",
+            "short_description": "Fix Critical Payment Gateway Failure",
+            "justification": "Production down, customers cannot pay. Sev1 incident.",
+            "risk": "High",
+            "priority": "1 - Critical",
+            "type": "Emergency",
+            "created_at": (datetime.datetime.now() - datetime.timedelta(days=1)).strftime("%Y-%m-%d")
+        },
+        {
+            "number": "CHG005002",
+            "short_description": "Update Logo on Login Page",
+            "justification": "Marketing wants the new logo up ASAP.",
+            "risk": "Low",
+            "priority": "4 - Low",
+            "type": "Emergency",
+            "created_at": (datetime.datetime.now() - datetime.timedelta(days=2)).strftime("%Y-%m-%d")
+        },
+        {
+            "number": "CHG005003",
+            "short_description": "Security Patch for Zero-Day Vulnerability",
+            "justification": "Critical security patch required to prevent exploit.",
+            "risk": "High",
+            "priority": "1 - Critical",
+            "type": "Emergency",
+            "created_at": (datetime.datetime.now() - datetime.timedelta(days=3)).strftime("%Y-%m-%d")
+        },
+        {
+            "number": "CHG005004",
+            "short_description": "Restart Stuck Job Service",
+            "justification": "Service stuck, impacting reporting.",
+            "risk": "Moderate",
+            "priority": "2 - High",
+            "type": "Emergency",
+            "created_at": (datetime.datetime.now() - datetime.timedelta(days=5)).strftime("%Y-%m-%d")
+        },
+        {
+            "number": "CHG005005",
+            "short_description": "Routine Server Reboot",
+            "justification": "Forgot to do it in maintenance window.",
+            "risk": "Low",
+            "priority": "3 - Moderate",
+            "type": "Emergency",
+            "created_at": (datetime.datetime.now() - datetime.timedelta(days=1)).strftime("%Y-%m-%d")
+        }
+    ]
+    
+    # 2. Filter by Timeframe (Simple Logic)
+    # If "last week" or "7 days", show all. If "yesterday", show only 1 day old.
+    # For demo, we'll just show all if "audit" is requested, or filter slightly.
+    
+    filtered_tickets = mock_tickets
+    timeframe_text = "Last 7 Days"
+    
+    if "yesterday" in query.lower():
+        yesterday = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime("%Y-%m-%d")
+        filtered_tickets = [t for t in mock_tickets if t['created_at'] == yesterday]
+        timeframe_text = "Yesterday"
+        
+    # 3. Audit Logic (The "Judge")
+    audit_results = []
+    
+    for ticket in filtered_tickets:
+        status = "Valid"
+        reason = "Compliant with SOP."
+        
+        # Policy Check 1: Priority
+        if ticket['priority'] in ["3 - Moderate", "4 - Low"]:
+            status = "Invalid"
+            reason = "Invalid: Priority is too low for Emergency change."
+            
+        # Policy Check 2: Justification Keywords
+        valid_keywords = ["production down", "outage", "critical", "sev1", "security", "vulnerability", "exploit"]
+        if not any(k in ticket['justification'].lower() for k in valid_keywords):
+            status = "Invalid"
+            reason = "Invalid: Justification does not indicate critical impact."
+            
+        # Policy Check 3: Routine work (heuristic)
+        if "routine" in ticket['short_description'].lower() or "forgot" in ticket['justification'].lower():
+            status = "Invalid"
+            reason = "Invalid: Routine maintenance should not be an Emergency change."
+            
+        audit_results.append({
+            "ticket": ticket,
+            "status": status,
+            "reason": reason
+        })
+        
+    # 4. Generate HTML Output
+    if not audit_results:
+        return {"answer": f"No emergency changes found for {timeframe_text}."}
+        
+    html = f"""<div class="audit-container">
+    <h3>🚨 Emergency Change Audit Report ({timeframe_text})</h3>
+    <div class="table-responsive">
+        <table class="audit-table">
+            <thead>
+                <tr>
+                    <th>Ticket</th>
+                    <th>Description</th>
+                    <th>Status</th>
+                    <th>Audit Reason</th>
+                </tr>
+            </thead>
+            <tbody>"""
+    
+    for res in audit_results:
+        status_class = "status-valid" if res['status'] == "Valid" else "status-invalid"
+        icon = "✅" if res['status'] == "Valid" else "❌"
+        
+        html += f"""
+                <tr>
+                    <td><strong>{res['ticket']['number']}</strong></td>
+                    <td>{res['ticket']['short_description']}</td>
+                    <td><span class="status-badge {status_class}">{icon} {res['status']}</span></td>
+                    <td>{res['reason']}</td>
+                </tr>"""
+        
+    html += """
+            </tbody>
+        </table>
+    </div>
+    <div style="margin-top: 10px;">
+        <button onclick="exportAuditTableToCSV()" class="export-btn">
+            📥 Export to Excel
+        </button>
+    </div>
+</div>
+<style>
+    .audit-container { margin: 10px 0; font-family: sans-serif; }
+    .audit-container h3 { margin-bottom: 15px; color: #333; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+    .table-responsive { overflow-x: auto; }
+    .audit-table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    .audit-table th { background: #2c3e50; color: white; padding: 12px; text-align: left; font-weight: 600; }
+    .audit-table td { padding: 12px; border-bottom: 1px solid #e0e0e0; vertical-align: top; }
+    .audit-table tr:hover { background: #f8f9fa; }
+    .status-badge { padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: bold; display: inline-block; }
+    .status-valid { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+    .status-invalid { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    .export-btn {
+        background-color: #28a745;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: bold;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        transition: background-color 0.2s;
+    }
+    .export-btn:hover {
+        background-color: #218838;
+    }
+</style>"""
+    
+    return {"answer": html}

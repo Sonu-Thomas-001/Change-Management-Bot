@@ -38,10 +38,17 @@ def ask_question():
 
     lower_q = question.lower()
 
-    # --- FEATURE: Emergency Change Validator ---
-    if "emergency" in lower_q and ("change" in lower_q or "create" in lower_q or "raise" in lower_q or "draft" in lower_q):
-        validation_result = validate_emergency_change(question)
-        return jsonify({"answer": validation_result["message"]})
+    # --- FEATURE: Emergency Change Validator & Auditor ---
+    if "emergency" in lower_q:
+        # Auditor Intent
+        if any(keyword in lower_q for keyword in ["audit", "analyze", "invalid", "report", "review"]):
+            from app.services.validator_service import audit_emergency_changes
+            return jsonify(audit_emergency_changes(question))
+            
+        # Validator Intent
+        if any(keyword in lower_q for keyword in ["change", "create", "raise", "draft"]):
+            validation_result = validate_emergency_change(question)
+            return jsonify({"answer": validation_result["message"]})
 
     # --- FEATURE: Smart Change Creator ---
     from app.services.smart_change_creator import process_smart_change_intent

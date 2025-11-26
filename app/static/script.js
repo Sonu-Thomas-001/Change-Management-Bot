@@ -340,3 +340,34 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 });
+
+// --- Global Helper: Export Audit Table ---
+function exportAuditTableToCSV() {
+    // Find the last audit table in the chat
+    const tables = document.querySelectorAll(".audit-table");
+    if (tables.length === 0) {
+        alert("No audit table found to export.");
+        return;
+    }
+    const table = tables[tables.length - 1]; // Export the most recent one
+
+    let rows = Array.from(table.querySelectorAll("tr"));
+
+    let csvContent = rows.map(row => {
+        let cols = Array.from(row.querySelectorAll("th, td"));
+        return cols.map(col => {
+            let text = col.innerText.replace(/"/g, '""'); // Escape double quotes
+            return '"' + text + '"';
+        }).join(",");
+    }).join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", "Emergency_Change_Audit_Report.csv");
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
