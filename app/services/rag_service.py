@@ -173,3 +173,28 @@ def analyze_risk_score(plan_text):
         return jsonify({"answer": response.content})
     except Exception as e:
         return jsonify({"answer": f"Error during risk analysis: {str(e)}"})
+
+def translate_text(text, target_language):
+    """
+    Translates the given text to the target language using the LLM.
+    Preserves formatting and placeholders.
+    """
+    if not llm:
+        return text # Fallback if LLM not ready
+        
+    prompt = (
+        f"Translate the following email draft into {target_language}. "
+        "IMPORTANT RULES:\n"
+        "1. Maintain the exact same structure and formatting (newlines, bullet points).\n"
+        "2. DO NOT translate placeholders like [CR-ID], [Requester Name], [Manager Name], etc.\n"
+        "3. DO NOT translate specific IDs like CR-123, CHG999.\n"
+        "4. Keep the tone professional.\n\n"
+        f"Text to translate:\n{text}"
+    )
+    
+    try:
+        response = llm.invoke(prompt)
+        return response.content
+    except Exception as e:
+        print(f"Translation Error: {e}")
+        return text # Fallback to original text on error

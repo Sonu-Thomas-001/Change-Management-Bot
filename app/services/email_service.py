@@ -1,6 +1,7 @@
 from flask import jsonify
 import urllib.parse
 import re
+from app.services.rag_service import translate_text
 
 def generate_email_draft(topic, full_query=""):
     # Combine topic and full query to check for keywords
@@ -9,6 +10,10 @@ def generate_email_draft(topic, full_query=""):
     # Extract CR-ID (e.g., CR-123, CHG0001, or just numbers if context implies)
     cr_id_match = re.search(r'(cr-\d+|chg\d+|cr\d+)', check_text, re.IGNORECASE)
     cr_id = cr_id_match.group(0).upper() if cr_id_match else "[CR-ID]"
+
+    # Detect Target Language (e.g., "in Spanish", "translate to French")
+    language_match = re.search(r'\b(in|to)\s+(spanish|french|german|italian|portuguese|hindi|chinese|japanese|russian|arabic)\b', check_text, re.IGNORECASE)
+    target_language = language_match.group(2).capitalize() if language_match else None
     
     # SOP Templates
     templates = {
@@ -70,6 +75,11 @@ def generate_email_draft(topic, full_query=""):
             f"Best regards,\n"
             f"[Your Name]"
         )
+
+    # Translate if needed
+    if target_language:
+        subject = translate_text(subject, target_language)
+        body = translate_text(body, target_language)
     
     # URL Encode for Mailto Link
     subject_enc = urllib.parse.quote(subject)
@@ -81,7 +91,7 @@ def generate_email_draft(topic, full_query=""):
         f"<a href='{mailto_link}' "
         f"style='background-color: #007bff; color: white; padding: 8px 16px; "
         f"text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold; margin-bottom: 10px;'>"
-        f"📧 Draft in Outlook"
+        f"📧 Draft in Outlook ({target_language if target_language else 'English'})"
         f"</a>"
     )
     
@@ -93,6 +103,6 @@ def generate_email_draft(topic, full_query=""):
     )
     
     return jsonify({
-        "answer": f"Here is a draft for your email regarding **{topic}**:<br><br>{button_html}{email_preview}",
+        "answer": f"Here is a draft for your email regarding **{topic}** ({target_language if target_language else 'English'}):<br><br>{button_html}{email_preview}",
         "disable_copy": True
     })
