@@ -48,8 +48,22 @@ def get_servicenow_stats(group_by_field="state", chart_type="bar"):
     }
     
     try:
-        response = requests.get(url, auth=HTTPBasicAuth(USER, PASSWORD), params=params)
-        data = response.json()
+        headers = {"Accept": "application/json"}
+        response = requests.get(url, auth=HTTPBasicAuth(USER, PASSWORD), params=params, headers=headers)
+        
+        if response.status_code != 200:
+            print(f"ServiceNow Stats API Error: {response.status_code} - {response.text[:200]}")
+            raise Exception(f"API returned status {response.status_code}")
+
+        if not response.text.strip():
+            print(f"ServiceNow Stats API returned empty response. Content-Type: {response.headers.get('Content-Type')}")
+            raise Exception("API returned empty response")
+
+        try:
+            data = response.json()
+        except ValueError:
+            print(f"ServiceNow Stats API Invalid JSON: {response.text[:200]}")
+            raise Exception("API returned invalid JSON")
         labels = []
         counts = []
         if 'result' in data:
@@ -179,8 +193,24 @@ def get_ticket_details(ticket_number):
     }
     
     try:
-        response = requests.get(url, auth=HTTPBasicAuth(USER, PASSWORD), params=params)
-        data = response.json()
+        headers = {"Accept": "application/json"}
+        # Disable redirects to catch 302s (often login pages)
+        response = requests.get(url, auth=HTTPBasicAuth(USER, PASSWORD), params=params, headers=headers, allow_redirects=False)
+        
+        if response.status_code in [301, 302]:
+             return jsonify({"answer": f"⚠️ ServiceNow API Redirected (Status {response.status_code}).\n\n**Target:** `{response.headers.get('Location')}`\n**Requested URL:** `{url}`\n\n**Possible Fix:** Check your `SERVICENOW_INSTANCE` in `.env`. It should look like `https://dev12345.service-now.com` (no trailing slash)."})
+
+        if response.status_code != 200:
+            return jsonify({"answer": f"ServiceNow API Error: Status {response.status_code} - {response.text[:200]}"})
+            
+        if not response.text.strip():
+             return jsonify({"answer": f"ServiceNow API returned an empty response (Status 200). Content-Type: {response.headers.get('Content-Type')}"})
+
+        try:
+            data = response.json()
+        except ValueError:
+             # If we still get invalid JSON with 200 OK and text/html, it's likely a misconfigured instance returning a default page
+             return jsonify({"answer": f"ServiceNow API returned invalid JSON.\n**Status:** {response.status_code}\n**Content-Type:** {response.headers.get('Content-Type')}\n**URL:** `{url}`\n**Response:** `{response.text[:500]}`"})
         if 'result' in data and len(data['result']) > 0:
             ticket = data['result'][0]
             
