@@ -44,7 +44,7 @@ def get_ticket_details(ticket_number):
             f"*   **Type**: {details.get('type', 'N/A')}\n"
             f"*   **Priority**: {details.get('priority', 'N/A')}\n"
             f"*   **Impact**: {details.get('impact', 'N/A')}\n"
-            f"*   **Assigned To**: {details.get('assigned_to', 'N/A')} ({details.get('assignment_group', 'N/A')})\n"
+            f"*   **Assigned To**: {details.get('assigned_to', {}).get('display_value', details.get('assigned_to')) if isinstance(details.get('assigned_to'), dict) else details.get('assigned_to', 'N/A')} ({details.get('assignment_group', 'N/A')})\n"
             f"*   **Planned Start**: {details.get('start_date', 'N/A')}\n"
             f"*   **Planned End**: {details.get('end_date', 'N/A')}\n\n"
 
@@ -133,7 +133,7 @@ def get_ticket_details(ticket_number):
     params = {
         "sysparm_query": f"number={ticket_number}",
         "sysparm_limit": 1,
-        "sysparm_fields": "sys_id,number,state,priority,short_description,risk,impact,assigned_to,cmdb_ci,sys_updated_on",
+        "sysparm_fields": "sys_id,number,state,priority,short_description,risk,impact,assigned_to,cmdb_ci,sys_updated_on,start_date,end_date,type",
         "sysparm_display_value": "true"
     }
     
