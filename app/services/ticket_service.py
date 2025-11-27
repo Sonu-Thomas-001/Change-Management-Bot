@@ -11,10 +11,25 @@ def get_ticket_details(ticket_number):
     # --- HELPER FUNCTIONS ---
     def get_sla_status(state, updated_on):
         """Simulates SLA logic based on state and last update."""
-        import datetime
+        from datetime import datetime, timedelta
+        
         if state in ["New", "Assess", "Authorize"]:
-            # Mocking an SLA breach check
-            return "⚠️ **SLA Warning**: Approval SLA will breach in **2 hours**. Notifying approver automatically."
+            try:
+                # Parse updated_on (Format: YYYY-MM-DD HH:MM:SS)
+                last_update = datetime.strptime(updated_on, "%Y-%m-%d %H:%M:%S")
+                time_diff = datetime.now() - last_update
+                hours_since_update = time_diff.total_seconds() / 3600
+                
+                if hours_since_update > 48:
+                    return "🚨 **SLA Breach**: Approval overdue (No updates for > 48 hours)."
+                elif hours_since_update > 24:
+                    return "⚠️ **SLA Warning**: No updates for over 24 hours. Notifying approver automatically."
+                else:
+                    return f"✅ **SLA Status**: On Track (Last updated {int(hours_since_update)} hours ago)"
+            except Exception as e:
+                # Fallback if date parsing fails
+                return "✅ **SLA Status**: On Track"
+                
         return "✅ **SLA Status**: On Track"
 
     def format_ticket_response(details, approvers, conflicts, related_changes, sla_msg):
@@ -33,7 +48,20 @@ def get_ticket_details(ticket_number):
         if related_changes:
              related_section = "\n".join([f"- {r}" for r in related_changes])
 
-        ci_display = details.get('cmdb_ci') or "CI"
+        ci_raw = details.get('cmdb_ci')
+        ci_display = "CI"
+        if isinstance(ci_raw, dict):
+            ci_display = ci_raw.get('display_value', ci_raw.get('name', 'CI'))
+        elif isinstance(ci_raw, str) and "display_value" in ci_raw:
+            try:
+                import ast
+                ci_dict = ast.literal_eval(ci_raw)
+                if isinstance(ci_dict, dict):
+                    ci_display = ci_dict.get('display_value', 'CI')
+            except:
+                pass
+        elif ci_raw:
+            ci_display = ci_raw
 
         html_response = (
             f"### 🔍 Insightful Status View: {details['number']}\n\n"
@@ -57,7 +85,9 @@ def get_ticket_details(ticket_number):
             
             f"#### 🛡️ Conflict & Risk\n"
             f"{conflict_section}\n\n"
-            f"**Related Changes on {ci_display}**:\n"
+            
+            f"#### 🔗 Related Changes\n"
+            f"**On {ci_display}**:\n"
             f"{related_section}\n\n"
             
             f"#### ⏱️ SLA Status\n"
@@ -160,6 +190,30 @@ def get_ticket_details(ticket_number):
             
             # 2. Conflicts
             conflicts = []
+            start_str = ticket.get('start_date')
+            end_str = ticket.get('end_date')
+            
+            if start_str and end_str:
+                try:
+                    # Query for overlapping changes
+                    # Logic: (StartA <= EndB) and (EndA >= StartB) -> Overlap
+                    # SN Query: start_date <= end_str ^ end_date >= start_str ^ number != ticket_number
+                    # We also filter for active states (not closed/cancelled) to be relevant
+                    conflict_query = f"start_date<={end_str}^end_date>={start_str}^number!={ticket_number}^stateNOT IN3,4,7" 
+                    
+                    conflict_params = {
+                        "sysparm_query": conflict_query,
+                        "sysparm_fields": "number,short_description,start_date,end_date",
+                        "sysparm_limit": 5
+                    }
+                    
+                    c_response = requests.get(url, auth=HTTPBasicAuth(USER, PASSWORD), params=conflict_params, headers=headers)
+                    if c_response.status_code == 200:
+                        c_data = c_response.json()
+                        for c in c_data.get('result', []):
+                            conflicts.append(f"**{c['number']}**: {c['short_description']} ({c['start_date']} to {c['end_date']})")
+                except Exception as e:
+                    print(f"Conflict Check Error: {e}")
             
             # 3. SLA
             sla_msg = get_sla_status(ticket.get('state'), ticket.get('sys_updated_on'))
