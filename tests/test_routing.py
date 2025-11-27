@@ -62,8 +62,8 @@ if __name__ == "__main__":
     # 3. Ambiguous case (should be schedule now if LLM is smart, or General)
     test_query("changes today", expected_intent_hint="SCHEDULE")
     
-    # 4. Ticket status
-    test_query("Status of CR-123")
+    # 4. Ticket status (CR-1024 exists in mock DB)
+    test_query("Status of CR-1024", expected_intent_hint="TICKET")
     
     # 5. Email draft
     test_query("Draft an email about the server outage")

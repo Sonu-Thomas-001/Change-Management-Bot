@@ -60,6 +60,21 @@ def get_ticket_details(ticket_number):
             f"#### ⏱️ SLA Status\n"
             f"{sla_msg}"
         )
+        
+        # Add View in ServiceNow Button
+        if INSTANCE:
+            # Construct URL: Try sys_id first, else query by number
+            if 'sys_id' in details:
+                sn_link = f"{INSTANCE}/nav_to.do?uri=change_request.do?sys_id={details['sys_id']}"
+            else:
+                sn_link = f"{INSTANCE}/change_request.do?sysparm_query=number={details['number']}"
+                
+            html_response += f'''
+            <div style="margin-top: 20px;">
+                <a href="{sn_link}" target="_blank" style="background-color: #293e40; color: white; padding: 10px 15px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">🔗 View in ServiceNow</a>
+            </div>
+            '''
+            
         return html_response
 
     # --- MOCK MODE ---
