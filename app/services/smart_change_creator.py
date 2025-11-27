@@ -1,167 +1,171 @@
-import os
 import requests
-from flask import session, jsonify
 from requests.auth import HTTPBasicAuth
-import datetime
+from app.config import Config
+from datetime import datetime
 
-# --- Mock Data for Search ---
-MOCK_SUCCESSFUL_CHANGES = [
-    {
-        "number": "CHG003001",
-        "short_description": "Upgrade Oracle Database to 19c",
-        "description": "Full upgrade of the primary Oracle DB instance. Includes backup verification and rollback plan.",
-        "risk": "High",
-        "impact": "2 - Medium",
-        "type": "Normal",
-        "implementation_plan": "1. Stop App Services\n2. Backup DB\n3. Run Upgrade Script\n4. Verify Version\n5. Start Services",
-        "close_code": "Successful"
-    },
-    {
-        "number": "CHG003002",
-        "short_description": "Patch Windows Server 2019 Fleet",
-        "description": "Apply monthly security patches to all Windows 2019 servers in the production environment.",
-        "risk": "Low",
-        "impact": "3 - Low",
-        "type": "Standard",
-        "implementation_plan": "1. Reboot servers one by one\n2. Verify uptime",
-        "close_code": "Successful"
-    },
-    {
-        "number": "CHG003003",
-        "short_description": "Firewall Rule Update for Vendor Access",
-        "description": "Allow specific IP range for new vendor API access on port 443.",
-        "risk": "Low",
-        "impact": "3 - Low",
-        "type": "Standard",
-        "implementation_plan": "1. Backup config\n2. Add rule\n3. Test connectivity",
-        "close_code": "Successful"
-    }
-]
+def find_similar_changes(description):
+    """
+    Searches for successful closed changes that match the description.
+    Returns the best match as a dictionary or None.
+    """
+    INSTANCE = Config.SERVICENOW_INSTANCE
+    USER = Config.SERVICENOW_USER
+    PASSWORD = Config.SERVICENOW_PASSWORD
 
-def search_similar_changes(query):
-    """
-    Mock search for successful past changes based on keywords.
-    In a real scenario, this would query ServiceNow or a vector DB.
-    """
-    query_lower = query.lower()
-    matches = []
-    
-    for change in MOCK_SUCCESSFUL_CHANGES:
-        # Simple keyword matching
-        if any(word in change['short_description'].lower() for word in query_lower.split()):
-            matches.append(change)
-            
-    return matches
+    # --- MOCK MODE ---
+    if not all([INSTANCE, USER, PASSWORD]):
+        # Mock logic for testing without credentials
+        if "database" in description.lower():
+            return {
+                "number": "CR-1024",
+                "short_description": "Database Migration to AWS",
+                "description": "Full migration of the legacy Oracle database to AWS RDS.",
+                "risk": "High",
+                "impact": "2 - Medium",
+                "type": "Normal",
+                "close_code": "Successful"
+            }
+        elif "switch" in description.lower():
+             return {
+                "number": "CHG0030001",
+                "short_description": "Core Switch Upgrade",
+                "description": "Upgrading firmware on the core switch stack.",
+                "risk": "Very High",
+                "impact": "1 - High",
+                "type": "Normal",
+                "close_code": "Successful"
+            }
+        return None
 
-def clone_change_request(ticket_number):
-    """
-    Retrieves details of a specific ticket to use as a clone.
-    """
-    for change in MOCK_SUCCESSFUL_CHANGES:
-        if change['number'] == ticket_number:
-            return change.copy()
-    return None
-
-def create_change_request_mock(draft):
-    """
-    Mock creation of a change request in ServiceNow.
-    """
-    import random
-    new_id = f"CHG{random.randint(4000, 9999)}"
-    return new_id
-
-def process_smart_change_intent(question):
-    """
-    Main handler for the Smart Change Creator feature.
-    Manages conversation state via Flask session.
-    """
-    question_lower = question.lower()
-    
-    # --- STATE 2: Awaiting Clone Confirmation ---
-    if session.get('smart_change_state') == 'awaiting_clone_confirmation':
-        if any(word in question_lower for word in ['yes', 'sure', 'ok', 'yeah', 'confirm']):
-            # User accepted the clone
-            suggestion = session.get('smart_change_suggestion')
-            if not suggestion:
-                session.pop('smart_change_state', None)
-                return jsonify({"answer": "Session expired. Please start over."})
-            
-            # Create draft in session
-            draft = suggestion.copy()
-            session['smart_change_draft'] = draft
-            session['smart_change_state'] = 'awaiting_details'
-            
-            return jsonify({
-                "answer": (
-                    f"✅ **Cloning {draft['number']}...**\n\n"
-                    f"I've pre-filled the description: *{draft['short_description']}*\n"
-                    f"Risk: *{draft['risk']}* | Type: *{draft['type']}*\n\n"
-                    "Please provide the **Planned Start Date** for this new request (e.g., YYYY-MM-DD)."
-                )
-            })
-        elif any(word in question_lower for word in ['no', 'cancel', 'stop']):
-            session.pop('smart_change_state', None)
-            session.pop('smart_change_suggestion', None)
-            return jsonify({"answer": "❌ Smart Change Creation cancelled."})
-        else:
-            # Ambiguous response, keep state
-            return jsonify({"answer": "Please answer **Yes** to clone this ticket or **No** to cancel."})
-
-    # --- STATE 3: Awaiting Details (Date) ---
-    elif session.get('smart_change_state') == 'awaiting_details':
-        # Simple date validation (can be improved)
-        import re
-        date_match = re.search(r'\d{4}-\d{1,2}-\d{1,2}', question)
-        if date_match:
-            draft = session.get('smart_change_draft')
-            draft['start_date'] = date_match.group(0)
-            
-            # Proceed to creation
-            new_id = create_change_request_mock(draft)
-            
-            # Clear session
-            session.pop('smart_change_state', None)
-            session.pop('smart_change_draft', None)
-            session.pop('smart_change_suggestion', None)
-            
-            return jsonify({
-                "answer": (
-                    f"🎉 **Success!** New Change Request **{new_id}** has been created.\n\n"
-                    f"**Details:**\n"
-                    f"- **Description:** {draft['short_description']}\n"
-                    f"- **Start Date:** {draft['start_date']}\n"
-                    f"- **Cloned From:** {draft['number']}\n\n"
-                    f"[View in ServiceNow](#)"
-                )
-            })
-        else:
-            return jsonify({"answer": "⚠️ I need a valid date (YYYY-MM-DD) to proceed with the creation."})
-
-    # --- STATE 1: Initial Intent Detection ---
-    # Only trigger if "create" and "change" are present, and NOT already in a flow
-    if "create" in question_lower and "change" in question_lower:
-        # Search for similar changes
-        matches = search_similar_changes(question)
+    # --- REAL SERVICENOW MODE ---
+    try:
+        url = f"{INSTANCE}/api/now/table/change_request"
         
-        if matches:
-            best_match = matches[0]
-            session['smart_change_state'] = 'awaiting_clone_confirmation'
-            session['smart_change_suggestion'] = best_match
+        # Improve keyword extraction
+        import re
+        # Remove special chars and lowercase
+        clean_desc = re.sub(r'[^a-zA-Z0-9\s]', '', description.lower())
+        words = clean_desc.split()
+        
+        stop_words = {'i', 'need', 'to', 'a', 'an', 'the', 'for', 'of', 'in', 'on', 'at', 'with', 'create', 'change', 'request', 'ticket', 'please', 'update', 'upgrade', 'fix', 'issue'}
+        keywords = [w for w in words if w not in stop_words]
+        
+        # If no keywords left (e.g. "create a change"), fallback to original or empty
+        if not keywords:
+            keywords = words[:3]
             
-            details = (
-                f"**{best_match['number']} - {best_match['short_description']}**\n"
-                f"- **Risk:** {best_match['risk']}\n"
-                f"- **Type:** {best_match['type']}\n"
-                f"- **Plan:** {best_match['implementation_plan'][:100]}..."
-            )
+        # Take top 3 meaningful keywords
+        search_terms = keywords[:3]
+        
+        if not search_terms:
+            return None
             
-            return jsonify({
-                "answer": (
-                    f"💡 **Smart Suggestion:** I found a successful past change that matches your intent.\n\n"
-                    f"{details}\n\n"
-                    f"Would you like to use **{best_match['number']}** as a template? (Yes/No)"
-                )
-            })
+        keyword_query = "^".join([f"short_descriptionLIKE{k}" for k in search_terms])
+        
+        query = f"active=false^close_code=successful^{keyword_query}"
+        
+        params = {
+            "sysparm_query": query,
+            "sysparm_limit": 1,
+            "sysparm_fields": "number,short_description,description,risk,impact,type,close_code",
+            "sysparm_display_value": "true"
+        }
+        
+        headers = {"Accept": "application/json"}
+        response = requests.get(url, auth=HTTPBasicAuth(USER, PASSWORD), params=params, headers=headers)
+        
+        if response.status_code == 200:
+            data = response.json()
+            if 'result' in data and len(data['result']) > 0:
+                return data['result'][0]
+                
+        return None
+
+    except Exception as e:
+        print(f"Smart Change Search Error: {e}")
+        return None
+
+def get_change_details(ticket_number):
+    """
+    Fetches details of a specific change request.
+    """
+    INSTANCE = Config.SERVICENOW_INSTANCE
+    USER = Config.SERVICENOW_USER
+    PASSWORD = Config.SERVICENOW_PASSWORD
+
+    # --- MOCK MODE ---
+    if not all([INSTANCE, USER, PASSWORD]):
+        return {
+            "number": ticket_number,
+            "short_description": "Mock Change Request",
+            "description": "This is a mock description for testing.",
+            "risk": "Low",
+            "impact": "3 - Low",
+            "type": "Normal"
+        }
+
+    # --- REAL SERVICENOW MODE ---
+    try:
+        url = f"{INSTANCE}/api/now/table/change_request"
+        params = {
+            "sysparm_query": f"number={ticket_number}",
+            "sysparm_limit": 1,
+            "sysparm_fields": "number,short_description,description,risk,impact,type",
+            "sysparm_display_value": "true"
+        }
+        
+        headers = {"Accept": "application/json"}
+        response = requests.get(url, auth=HTTPBasicAuth(USER, PASSWORD), params=params, headers=headers)
+        
+        if response.status_code == 200:
+            data = response.json()
+            if 'result' in data and len(data['result']) > 0:
+                return data['result'][0]
+        
+        return None
+    except Exception as e:
+        print(f"Get Change Details Error: {e}")
+        return None
+
+def create_change_request(template_ticket, start_date, end_date, assigned_to="Unassigned"):
+    """
+    Creates a new change request based on a template ticket.
+    """
+    INSTANCE = Config.SERVICENOW_INSTANCE
+    USER = Config.SERVICENOW_USER
+    PASSWORD = Config.SERVICENOW_PASSWORD
     
-    # If no state matched and no new intent found, return None to let app.py handle it
-    return None
+    # --- MOCK MODE ---
+    if not all([INSTANCE, USER, PASSWORD]):
+        return "CHG_NEW_9999"
+
+    # --- REAL SERVICENOW MODE ---
+    try:
+        url = f"{INSTANCE}/api/now/table/change_request"
+        
+        payload = {
+            "short_description": f"CLONE: {template_ticket.get('short_description')}",
+            "description": template_ticket.get('description', ''),
+            "risk": template_ticket.get('risk'),
+            "impact": template_ticket.get('impact'),
+            "type": template_ticket.get('type'),
+            "start_date": start_date,
+            "end_date": end_date,
+            "assigned_to": assigned_to
+            # Add other fields as needed
+        }
+        
+        headers = {"Accept": "application/json", "Content-Type": "application/json"}
+        response = requests.post(url, auth=HTTPBasicAuth(USER, PASSWORD), json=payload, headers=headers)
+        
+        if response.status_code == 201:
+            data = response.json()
+            if 'result' in data:
+                return data['result'].get('number')
+        
+        print(f"Creation Failed: {response.text}")
+        return None
+
+    except Exception as e:
+        print(f"Smart Change Creation Error: {e}")
+        return None

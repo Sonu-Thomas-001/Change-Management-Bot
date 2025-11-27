@@ -92,12 +92,51 @@ def ask_question():
 
     # 2. Create Ticket Intent
     if intent == "CREATE_CHANGE":
-        # Check for Smart Change Creator first
-        from app.services.smart_change_creator import process_smart_change_intent
-        smart_response = process_smart_change_intent(question)
-        if smart_response:
-            return smart_response
+        # Check if this is a confirmation to clone
+        clone_match = re.search(r"clone\s+(CR|CHG|MOCK)[-]?(\d+)", lower_q)
+        if clone_match:
+            # Parse details for cloning
+            ticket_number = clone_match.group(0).split()[1].upper()
             
+            # Extract dates if present (simple extraction)
+            start_date = "2025-12-01 09:00:00" # Default/Mock
+            end_date = "2025-12-02 17:00:00"   # Default/Mock
+            
+            # Try to find dates in input
+            date_matches = re.findall(r"\d{4}-\d{2}-\d{2}", question)
+            if len(date_matches) >= 2:
+                start_date = f"{date_matches[0]} 09:00:00"
+                end_date = f"{date_matches[1]} 17:00:00"
+            
+            # Extract Assignee if present
+            assigned_to = "Unassigned"
+            assignee_match = re.search(r"assigned to\s+([a-zA-Z\s]+)", lower_q)
+            if assignee_match:
+                assigned_to = assignee_match.group(1).strip().title()
+
+            # Fetch template details
+            from app.services.smart_change_creator import get_change_details, create_change_request as smart_create
+            
+            template_ticket = get_change_details(ticket_number)
+            
+            if not template_ticket:
+                 return jsonify({"answer": f"❌ I could not find the template ticket **{ticket_number}**. Please check the number and try again."})
+            
+            new_ticket = smart_create(template_ticket, start_date, end_date, assigned_to)
+            
+            if new_ticket:
+                 return jsonify({"answer": f"✅ **Smart Clone Successful!**\n\nI have created a new Change Request **{new_ticket}** based on {ticket_number}.\n\n*   **Scheduled**: {start_date} to {end_date}\n*   **Assigned To**: {assigned_to}\n*   **Status**: Draft"})
+            else:
+                 return jsonify({"answer": "❌ Failed to create cloned ticket."})
+
+        # Otherwise, search for suggestions
+        from app.services.smart_change_creator import find_similar_changes
+        suggestion = find_similar_changes(question)
+        
+        if suggestion:
+            return jsonify({"answer": f"💡 **Smart Suggestion**: I found a successful past change that matches your request:\n\n**{suggestion['number']}**: {suggestion['short_description']}\n\nWould you like to use this as a template? If so, reply with:\n`Clone {suggestion['number']} for YYYY-MM-DD to YYYY-MM-DD assigned to [Name]`"})
+            
+        # Fallback to standard creation if no smart match
         return create_change_request(
             description=question,
             impact="Low",

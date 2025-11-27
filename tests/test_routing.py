@@ -67,3 +67,12 @@ if __name__ == "__main__":
     
     # 5. Email draft
     test_query("Draft an email about the server outage")
+
+    # 6. Smart Change Creator (Suggestion)
+    test_query("I need to upgrade the database", expected_intent_hint="CREATE")
+    
+    # 7. Smart Change Creator (Cloning)
+    test_query("Clone CR-1024 for 2025-12-01 to 2025-12-02", expected_intent_hint="CREATE")
+
+    # 8. Smart Change Creator (Cloning with Assignee)
+    test_query("Clone CR-1024 for 2025-12-01 to 2025-12-02 assigned to Bob Smith", expected_intent_hint="CREATE")
