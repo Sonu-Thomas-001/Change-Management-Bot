@@ -198,3 +198,57 @@ def translate_text(text, target_language):
     except Exception as e:
         print(f"Translation Error: {e}")
         return text # Fallback to original text on error
+
+def classify_intent(query):
+    """
+    Classifies the user's query into a specific intent using the LLM.
+    """
+    if not llm:
+        return "GENERAL_QUERY" # Fallback
+        
+    system_prompt = (
+        "You are an Intent Classifier for a Change Management Chatbot. "
+        "Classify the user's query into EXACTLY ONE of the following categories:\n\n"
+        
+        "1. TICKET_STATUS: User wants to check the status or details of a specific ticket (e.g., 'Status of CR-123', 'Check CHG999').\n"
+        "2. CREATE_CHANGE: User wants to create, raise, or draft a new change request.\n"
+        "3. PENDING_APPROVALS: User asks about their pending approvals or approvals they need to action.\n"
+        "4. PENDING_TASKS: User asks about their assigned tasks or work.\n"
+        "5. DRAFT_EMAIL: User wants to draft an email, communication, or notification.\n"
+        "6. RISK_ANALYSIS: User asks to analyze the risk of a plan or implementation steps.\n"
+        "7. SCHEDULE_QUERY: User asks about the schedule, calendar, upcoming changes, or planned maintenance.\n"
+        "8. SHOW_STATS: User asks for charts, statistics, metrics, trends, or breakdowns.\n"
+        "9. AUDIT_EMERGENCY: User wants to audit or analyze emergency changes for compliance.\n"
+        "10. VALIDATE_EMERGENCY: User wants to validate if a change qualifies as emergency.\n"
+        "11. GENERAL_QUERY: General questions, definitions, 'how-to' questions, greetings, or anything else.\n\n"
+        
+        "OUTPUT RULE: Return ONLY the category name (e.g., 'TICKET_STATUS'). Do not add any explanation."
+    )
+    
+    prompt = ChatPromptTemplate.from_messages([
+        ("system", system_prompt),
+        ("human", "{input}"),
+    ])
+    
+    try:
+        chain = prompt | llm
+        response = chain.invoke({"input": query})
+        intent = response.content.strip().upper()
+        
+        # Safety check to ensure valid intent
+        valid_intents = [
+            "TICKET_STATUS", "CREATE_CHANGE", "PENDING_APPROVALS", "PENDING_TASKS", 
+            "DRAFT_EMAIL", "RISK_ANALYSIS", "SCHEDULE_QUERY", "SHOW_STATS", 
+            "AUDIT_EMERGENCY", "VALIDATE_EMERGENCY", "GENERAL_QUERY"
+        ]
+        
+        if intent not in valid_intents:
+            # Fallback for hallucinated intents
+            print(f"Warning: LLM returned invalid intent '{intent}'. Defaulting to GENERAL_QUERY.")
+            return "GENERAL_QUERY"
+            
+        return intent
+        
+    except Exception as e:
+        print(f"Intent Classification Error: {e}")
+        return "GENERAL_QUERY"

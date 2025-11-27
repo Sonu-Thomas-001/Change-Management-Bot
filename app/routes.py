@@ -76,35 +76,28 @@ def ask_question():
 
     lower_q = question.lower()
 
-    # --- FEATURE: Emergency Change Validator & Auditor ---
-    if "emergency" in lower_q:
-        # Auditor Intent
-        if any(keyword in lower_q for keyword in ["audit", "analyze", "invalid", "report", "review"]):
-            from app.services.validator_service import audit_emergency_changes
-            return jsonify(audit_emergency_changes(question))
-            
-        # Validator Intent
-        if any(keyword in lower_q for keyword in ["change", "create", "raise", "draft"]):
-            validation_result = validate_emergency_change(question)
-            return jsonify({"answer": validation_result["message"]})
+    # --- LLM-BASED ROUTING ---
+    intent = rag_service.classify_intent(question)
+    print(f"DEBUG: Detected Intent: {intent}")
 
-    # --- FEATURE: Smart Change Creator ---
-    from app.services.smart_change_creator import process_smart_change_intent
-    smart_response = process_smart_change_intent(question)
-    if smart_response:
-        return smart_response
-    
     # 1. Ticket Status Lookup
-    
-    # 1. Ticket Status Lookup
-    ticket_match = re.search(r"\b(cr|chg|mock)[-]?(\d+)\b", lower_q)
-    
-    if ticket_match and ("status" in lower_q or "check" in lower_q or "ticket" in lower_q):
-        full_match = ticket_match.group(0).upper()
-        return get_ticket_details(full_match)
-            
+    if intent == "TICKET_STATUS":
+        ticket_match = re.search(r"\b(cr|chg|mock)[-]?(\d+)\b", lower_q)
+        if ticket_match:
+            full_match = ticket_match.group(0).upper()
+            return get_ticket_details(full_match)
+        else:
+            # Fallback if no ticket number found, let RAG handle it or ask for number
+            pass 
+
     # 2. Create Ticket Intent
-    if "create" in lower_q and ("change request" in lower_q or "ticket" in lower_q):
+    if intent == "CREATE_CHANGE":
+        # Check for Smart Change Creator first
+        from app.services.smart_change_creator import process_smart_change_intent
+        smart_response = process_smart_change_intent(question)
+        if smart_response:
+            return smart_response
+            
         return create_change_request(
             description=question,
             impact="Low",
@@ -112,15 +105,15 @@ def ask_question():
         )
 
     # 3. Pending Approvals Intent
-    if any(keyword in lower_q for keyword in ["pending approval", "my approval", "approvals", "need to approve", "approval request"]):
+    if intent == "PENDING_APPROVALS":
         return get_pending_approvals()
 
     # 4. Pending Tasks Intent
-    if any(keyword in lower_q for keyword in ["pending task", "my task", "tasks", "assigned to me", "task list"]):
+    if intent == "PENDING_TASKS":
         return get_pending_tasks()
 
     # 5. Draft Email Intent
-    if "draft" in lower_q and ("email" in lower_q or "communication" in lower_q or "template" in lower_q):
+    if intent == "DRAFT_EMAIL":
         topic = "Change Request"
         if "for" in lower_q:
             topic = question.split("for", 1)[1].strip()
@@ -129,32 +122,18 @@ def ask_question():
         return generate_email_draft(topic, question)
 
     # 6. Risk Scoring Intent
-    if "risk" in lower_q and ("score" in lower_q or "analyze" in lower_q or "evaluate" in lower_q or "assess" in lower_q):
+    if intent == "RISK_ANALYSIS":
         return analyze_risk_score(question)
 
-    # 7. Schedule Conflict Detection Intent
-    if any(keyword in lower_q for keyword in ["schedule", "plan for", "implement on", "can i", "available"]):
-        # Check if there's a date reference
-        has_date = re.search(r'\d{4}-\d{1,2}-\d{1,2}', question) or \
-                   re.search(r'(January|February|March|April|May|June|July|August|September|October|November|December)', question, re.IGNORECASE) or \
-                   any(word in lower_q for word in ["weekend", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"])
-        
-        if has_date:
-            return check_schedule_conflict(question)
+    # 7. Schedule Conflict & Scheduled Changes Intent
+    if intent == "SCHEDULE_QUERY":
+        # Check for conflict detection first (specific type of schedule query)
+        if any(keyword in lower_q for keyword in ["conflict", "available", "can i"]):
+             return check_schedule_conflict(question)
+        return get_scheduled_changes(question)
 
-    # 8. Scheduled Changes Query Intent
-    scheduled_keywords = ["planned", "scheduled", "upcoming", "completed", "closed"]
-    time_keywords = ["today", "tomorrow", "weekend", "week", "month", "changes"]
-    
-    if any(x in lower_q for x in scheduled_keywords) or \
-       ("change" in lower_q and any(x in lower_q for x in time_keywords)):
-        # Check if it's asking for scheduled changes
-        if "change" in lower_q or "changes" in lower_q:
-            return get_scheduled_changes(question)
-
-    # 9. Enhanced Chart/Stats Intent  
-    chart_keywords = ["chart", "graph", "stats", "breakdown", "metrics", "trend", "workload", "how many", "show", "display", "visualize"]
-    if any(x in lower_q for x in chart_keywords):
+    # 8. Enhanced Chart/Stats Intent  
+    if intent == "SHOW_STATS":
         if "risk" in lower_q:
             return get_servicenow_stats(group_by_field="risk", chart_type="pie")
         elif "priority" in lower_q:
@@ -166,7 +145,6 @@ def ask_question():
         elif "type" in lower_q and "change" in lower_q:
             return get_servicenow_stats(group_by_field="change_type", chart_type="pie")
         elif any(word in lower_q for word in ["approval", "approved", "rejected", "reject", "accept", "accepted", "deny", "denied"]):
-            # Check if asking for comparison or counts
             if any(word in lower_q for word in ["vs", "versus", "compared", "comparison"]):
                 return get_servicenow_stats(group_by_field="approval_rate", chart_type="pie")
             return get_servicenow_stats(group_by_field="approval_rate", chart_type="doughnut")
@@ -180,10 +158,15 @@ def ask_question():
             return get_servicenow_stats(group_by_field="assignment_group", chart_type="bar")
         else:
             return get_servicenow_stats(group_by_field="state", chart_type="bar")
-                       
-    # Fallback for "status" if it didn't match a specific ticket
-    if "status" in lower_q and not ticket_match:
-         return get_servicenow_stats(group_by_field="state", chart_type="bar")
+            
+    # 9. Emergency Change Validator & Auditor
+    if intent == "AUDIT_EMERGENCY":
+        from app.services.validator_service import audit_emergency_changes
+        return jsonify(audit_emergency_changes(question))
+        
+    if intent == "VALIDATE_EMERGENCY":
+        validation_result = validate_emergency_change(question)
+        return jsonify({"answer": validation_result["message"]})
 
     chat_history = []
     for msg in chat_history_json:

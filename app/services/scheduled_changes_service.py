@@ -411,6 +411,10 @@ def _format_changes_table(changes, period_name, is_past, query_text, is_mock=Fal
         end = change.get('end_date', 'N/A')
         assigned = change.get('assigned_to', 'Unassigned')
         
+        # Handle case where assigned_to is a dictionary (ServiceNow reference object)
+        if isinstance(assigned, dict):
+            assigned = assigned.get('display_value', assigned.get('name', 'Unassigned'))
+        
         # Determine state badge color
         state_class = "state-scheduled"
         if "closed" in str(state).lower() or "complete" in str(state).lower():
