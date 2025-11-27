@@ -48,6 +48,9 @@ def get_ticket_details(ticket_number):
             f"*   **Planned Start**: {details.get('start_date', 'N/A')}\n"
             f"*   **Planned End**: {details.get('end_date', 'N/A')}\n\n"
 
+            f"#### 📝 Change Overview\n"
+            f"{details.get('description', 'No detailed overview provided.')}\n\n"
+
             f"#### 👥 Pending Approvers\n"
             f"{approver_section}\n\n"
             f"**Expected Approval Time**: {details.get('expected_approval', 'Unknown')}\n\n"
@@ -133,7 +136,7 @@ def get_ticket_details(ticket_number):
     params = {
         "sysparm_query": f"number={ticket_number}",
         "sysparm_limit": 1,
-        "sysparm_fields": "sys_id,number,state,priority,short_description,risk,impact,assigned_to,cmdb_ci,sys_updated_on,start_date,end_date,type",
+        "sysparm_fields": "sys_id,number,state,priority,short_description,description,risk,impact,assigned_to,cmdb_ci,sys_updated_on,start_date,end_date,type",
         "sysparm_display_value": "true"
     }
     
