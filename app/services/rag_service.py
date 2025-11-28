@@ -220,7 +220,8 @@ def classify_intent(query):
         "8. SHOW_STATS: User asks for charts, statistics, metrics, trends, or breakdowns.\n"
         "9. AUDIT_EMERGENCY: User wants to audit or analyze emergency changes for compliance.\n"
         "10. VALIDATE_EMERGENCY: User wants to validate if a change qualifies as emergency.\n"
-        "11. GENERAL_QUERY: General questions, definitions, 'how-to' questions, greetings, or anything else.\n\n"
+        "11. TEMPLATE_LOOKUP: User is asking for a template, standard change, or recommendation for a specific change activity (e.g., 'template for oracle', 'standard change for patching').\n"
+        "12. GENERAL_QUERY: General questions, definitions, 'how-to' questions, greetings, or anything else.\n\n"
         
         "OUTPUT RULE: Return ONLY the category name (e.g., 'TICKET_STATUS'). Do not add any explanation."
     )
@@ -239,7 +240,7 @@ def classify_intent(query):
         valid_intents = [
             "TICKET_STATUS", "CREATE_CHANGE", "PENDING_APPROVALS", "PENDING_TASKS", 
             "DRAFT_EMAIL", "RISK_ANALYSIS", "SCHEDULE_QUERY", "SHOW_STATS", 
-            "AUDIT_EMERGENCY", "VALIDATE_EMERGENCY", "GENERAL_QUERY"
+            "AUDIT_EMERGENCY", "VALIDATE_EMERGENCY", "TEMPLATE_LOOKUP", "GENERAL_QUERY"
         ]
         
         if intent not in valid_intents:
@@ -252,3 +253,78 @@ def classify_intent(query):
     except Exception as e:
         print(f"Intent Classification Error: {e}")
         return "GENERAL_QUERY"
+
+def recommend_template(query, templates):
+    """
+    Uses LLM to recommend the best template from a list of options.
+    """
+    if not llm:
+        return {"answer": "Template recommendation unavailable (LLM not ready)."}
+        
+    if not templates:
+        return {"answer": "I couldn't find any relevant templates for your request."}
+
+    # Format templates for the prompt
+    template_list_str = ""
+    INSTANCE = Config.SERVICENOW_INSTANCE
+    
+    for i, t in enumerate(templates):
+        sys_id = t.get('sys_id', '')
+        link = f"{INSTANCE}/nav_to.do?uri=sys_template.do?sys_id={sys_id}"
+        template_list_str += f"{i+1}. Name: {t.get('name')}\n   Description: {t.get('short_description')}\n   Fields: {t.get('template')}\n   Link: {link}\n\n"
+
+    prompt = (
+        "You are a Change Management Assistant. The user asked for a template.\n"
+        "I have found the following templates in ServiceNow:\n\n"
+        f"{template_list_str}\n"
+        f"User Query: \"{query}\"\n\n"
+        "Task:\n"
+        "1. Analyze the user's intent and the available templates.\n"
+        "2. List ALL relevant templates found (up to 3).\n"
+        "3. Format each template EXACTLY as follows:\n"
+        "   - **Template Name** (Header)\n"
+        "   - **Description**: [One line description]\n"
+        "   - **Pre-filled Fields**: [One line summary of key fields]\n"
+        "   - [HTML Button to View in ServiceNow]\n\n"
+        "Output Format:\n"
+        "I found [X] templates matching your request:\n\n"
+        "### 1. [Template Name]\n\n"
+        "**Description**: [Description]\n\n"
+        "**Pre-filled Fields**: [Key fields]\n\n"
+        "<a href='[Link]' target='_blank' style='background-color: #293e40; color: white; padding: 5px 10px; text-decoration: none; border-radius: 5px; font-size: 12px;'>🔗 View in ServiceNow</a>\n\n"
+        "### 2. [Template Name]\n"
+        "...\n"
+    )
+    
+    try:
+        response = llm.invoke(prompt)
+        return {"answer": response.content}
+    except Exception as e:
+        print(f"Template Recommendation Error: {e}")
+        return {"answer": "I encountered an error analyzing the templates."}
+
+def extract_template_keywords(query):
+    """
+    Uses LLM to extract specific search keywords for ServiceNow templates from a natural language query.
+    Example: "move to cloud" -> "Cloud Scaling"
+    """
+    if not llm:
+        return query # Fallback
+
+    prompt = (
+        "You are a helper for a ServiceNow search engine.\n"
+        "Extract 1-2 specific, high-value keywords from the user's query to search for a Standard Change Template.\n"
+        "Focus on the technical activity (e.g., 'Firewall', 'Oracle', 'Patch', 'Reboot', 'Cloud').\n"
+        "Do not include generic words like 'create', 'change', 'ticket', 'template', 'request'.\n\n"
+        f"User Query: \"{query}\"\n\n"
+        "Output ONLY the keywords separated by space. Do not add quotes or labels."
+    )
+    
+    try:
+        response = llm.invoke(prompt)
+        keywords = response.content.strip()
+        print(f"DEBUG: Extracted Keywords: {keywords}")
+        return keywords
+    except Exception as e:
+        print(f"Keyword Extraction Error: {e}")
+        return query

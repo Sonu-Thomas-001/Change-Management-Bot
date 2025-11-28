@@ -80,6 +80,12 @@ def ask_question():
     intent = rag_service.classify_intent(question)
     print(f"DEBUG: Detected Intent: {intent}")
 
+    # --- KEYWORD OVERRIDES ---
+    # Fallback: If intent is GENERAL_QUERY but 'template' is in the query, force TEMPLATE_LOOKUP
+    if intent == "GENERAL_QUERY" and "template" in lower_q:
+        intent = "TEMPLATE_LOOKUP"
+        print(f"DEBUG: Override Intent to TEMPLATE_LOOKUP (Keyword Match)")
+
     # 1. Ticket Status Lookup
     if intent == "TICKET_STATUS":
         ticket_match = re.search(r"\b(cr|chg|mock)[-]?(\d+)\b", lower_q)
@@ -206,6 +212,22 @@ def ask_question():
     if intent == "VALIDATE_EMERGENCY":
         validation_result = validate_emergency_change(question)
         return jsonify({"answer": validation_result["message"]})
+
+    # 10. Template Lookup Intent
+    if intent == "TEMPLATE_LOOKUP":
+        from app.services.smart_change_creator import find_relevant_templates
+        from app.services.rag_service import recommend_template, extract_template_keywords
+        
+        # 1. Extract Keywords (Semantic Search)
+        search_query = extract_template_keywords(question)
+        
+        # 2. Search ServiceNow for templates
+        templates = find_relevant_templates(search_query)
+        
+        # 3. Use LLM to recommend the best one
+        recommendation = recommend_template(question, templates)
+        
+        return jsonify(recommendation)
 
     chat_history = []
     for msg in chat_history_json:
