@@ -559,7 +559,7 @@ def get_recent_changes_by_keyword(keyword, limit=3):
 
     url = f"{INSTANCE}/api/now/table/change_request"
     params = {
-        "sysparm_query": f"short_descriptionLIKE{keyword}^state=3^ORstate=4", # Closed or Implemented
+        "sysparm_query": f"short_descriptionLIKE{keyword}", # Any state
         "sysparm_fields": "number,short_description,state",
         "sysparm_limit": limit,
         "sysparm_order_by_desc": "sys_updated_on"

@@ -329,7 +329,20 @@ def recommend_template(query, templates, keywords=None):
         "- **Field Name**: Value\n"
         "- **Field Name**: Value\n\n"
         "**Few change references raised recently using this template**:\n"
-        "> **[Change Number]** - [Short Description] <button onclick=\"document.getElementById('user-input').value='Clone [Change Number]'; document.getElementById('chat-form').requestSubmit();\" style='background-color: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; margin-left: 5px;'>Clone</button>\n"
+        "<div style='background: #f8f9fa; border-left: 3px solid #6366f1; border-radius: 4px; padding: 10px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05);'>"
+        "  <div style='display: flex; flex-direction: column;'>"
+        "    <span style='font-weight: 600; color: #2c3e50; font-size: 13px;'>[Change Number]</span>"
+        "    <span style='color: #6c757d; font-size: 12px; margin-top: 2px;'>[Short Description]</span>"
+        "  </div>"
+        "  <button onclick=\"document.getElementById('user-input').value='Clone [Change Number]'; document.getElementById('chat-form').requestSubmit();\" style='background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); color: white; border: none; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 500; transition: all 0.2s; box-shadow: 0 2px 4px rgba(79, 70, 229, 0.2); white-space: nowrap;'>Clone This</button>"
+        "</div>\n"
+        "<div style='background: #f8f9fa; border-left: 3px solid #6366f1; border-radius: 4px; padding: 10px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05);'>"
+        "  <div style='display: flex; flex-direction: column;'>"
+        "    <span style='font-weight: 600; color: #2c3e50; font-size: 13px;'>[Change Number]</span>"
+        "    <span style='color: #6c757d; font-size: 12px; margin-top: 2px;'>[Short Description]</span>"
+        "  </div>"
+        "  <button onclick=\"document.getElementById('user-input').value='Clone [Change Number]'; document.getElementById('chat-form').requestSubmit();\" style='background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); color: white; border: none; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 500; transition: all 0.2s; box-shadow: 0 2px 4px rgba(79, 70, 229, 0.2); white-space: nowrap;'>Clone This</button>"
+        "</div>\n"
     )
     
     if not is_fallback:
