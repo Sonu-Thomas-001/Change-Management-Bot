@@ -104,10 +104,6 @@
 <body>
     <div class="login-container">
         <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Logo" class="login-logo">
-        <div style="margin-bottom: 20px;">
-            <img src="{{ url_for('static', filename='img/HCLTech.png') }}" alt="HCLTech"
-                style="height: 24px; object-fit: contain;">
-        </div>
         <h1 class="login-title">Welcome Back</h1>
 
         {% with messages = get_flashed_messages() %}
@@ -140,6 +136,13 @@
             </div>
 
             <button type="submit" class="btn-login">Login</button>
+            <div style="margin-top: 40px; text-align: center;">
+                <img src="{{ url_for('static', filename='img/HCLTech.png') }}" alt="HCLTech"
+                    style="height: 18px; object-fit: contain;">
+                <div style="margin-top: 10px; font-size: 0.75rem; color: var(--text-muted);">
+                    Copyright &copy; 2025 HCL Technologies Limited
+                </div>
+            </div>
         </form>
     </div>
 </body>
