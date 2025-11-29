@@ -566,8 +566,22 @@
                 responsive: true,
                 maintainAspectRatio: false,
                 animation: {
-                    duration: 2000,              // 2-second intro animation
-                    easing: 'easeOutQuart'       // Smooth deceleration
+                    x: {
+                        type: 'number',
+                        easing: 'linear',
+                        duration: 50,
+                        from: NaN, // Start hidden
+                        delay(ctx) {
+                            if (ctx.type !== 'data' || ctx.xStarted) {
+                                return 0;
+                            }
+                            ctx.xStarted = true;
+                            return ctx.index * 30; // 30ms delay per point
+                        }
+                    },
+                    y: {
+                        duration: 0
+                    }
                 },
                 interaction: {
                     mode: 'index',
