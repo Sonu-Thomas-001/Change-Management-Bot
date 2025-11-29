@@ -297,6 +297,11 @@ def get_scheduled_changes(query):
         else:
             sysparm_query = f"start_dateBETWEENjavascript:gs.dateGenerate('{start_d}','{start_t}')@javascript:gs.dateGenerate('{end_d}','{end_t}')"
         
+        # Add keyword search if keywords are present
+        if keywords:
+            search_term = " ".join(keywords)
+            sysparm_query += f"^123TEXTQUERY321={search_term}"
+            
         params = {
             "sysparm_query": sysparm_query,
             "sysparm_display_value": "true",
@@ -312,23 +317,10 @@ def get_scheduled_changes(query):
             changes = data.get('result', [])
             
             if not changes:
-                return jsonify({
-                    "answer": f"✅ No changes {'completed' if is_past else 'scheduled'} for **{period_name}**."
-                })
-            
-            # Filter by keywords
-            if keywords:
-                filtered = []
-                for change in changes:
-                    text = (change.get('short_description', '') + " " + change.get('number', '')).lower()
-                    if any(k in text for k in keywords):
-                        filtered.append(change)
-                changes = filtered
-                
-                if not changes:
-                     return jsonify({
-                        "answer": f"✅ No changes found for **{period_name}** matching keywords: **{', '.join(keywords)}**."
-                    })
+                msg = f"✅ No changes found for **{period_name}**"
+                if keywords:
+                    msg += f" matching keywords: **{', '.join(keywords)}**"
+                return jsonify({"answer": msg + "."})
 
             return _format_changes_table(changes, period_name, is_past, query, is_mock=False)
         else:
