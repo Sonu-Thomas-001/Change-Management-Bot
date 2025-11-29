@@ -80,6 +80,27 @@
             margin-top: auto;
         }
 
+        /* Gradient Logout Button */
+        .nav-btn-gradient {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            color: white !important;
+            padding: 12px 15px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            display: block;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        .nav-btn-gradient:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(37, 99, 235, 0.4);
+            background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+        }
+
         /* --- Main Content --- */
         .main-content {
             margin-left: var(--sidebar-width);
@@ -95,9 +116,7 @@
             align-items: center;
             margin-bottom: 30px;
             position: relative;
-            /* For absolute positioning of logo */
             height: 40px;
-            /* Fixed height to ensure alignment */
         }
 
         h1 {
@@ -362,7 +381,7 @@
         <a href="#" class="nav-item active">Dashboard</a>
         <a href="/" class="nav-item">Live Chat</a>
         <div class="nav-footer">
-            <a href="/logout" class="nav-item">Logout</a>
+            <a href="/logout" class="nav-btn-gradient">Logout</a>
         </div>
     </nav>
 
