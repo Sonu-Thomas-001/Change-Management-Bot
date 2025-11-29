@@ -118,7 +118,7 @@ def get_change_details(ticket_number):
         params = {
             "sysparm_query": f"number={ticket_number}",
             "sysparm_limit": 1,
-            "sysparm_fields": "number,short_description,description,risk,impact,type",
+            "sysparm_fields": "number,short_description,description,risk,impact,type,priority,assignment_group,category",
             "sysparm_display_value": "true"
         }
         
@@ -152,11 +152,14 @@ def create_change_request(template_ticket, start_date, end_date, assigned_to="Un
         url = f"{INSTANCE}/api/now/table/change_request"
         
         payload = {
-            "short_description": f"CLONE: {template_ticket.get('short_description')}",
+            "short_description": template_ticket.get('short_description'),
             "description": template_ticket.get('description', ''),
             "risk": template_ticket.get('risk'),
             "impact": template_ticket.get('impact'),
             "type": template_ticket.get('type'),
+            "priority": template_ticket.get('priority'),
+            "assignment_group": template_ticket.get('assignment_group', {}).get('value') if isinstance(template_ticket.get('assignment_group'), dict) else template_ticket.get('assignment_group'),
+            "category": template_ticket.get('category'),
             "start_date": start_date,
             "end_date": end_date,
             "assigned_to": assigned_to

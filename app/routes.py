@@ -104,7 +104,7 @@ def ask_question():
     # 2. Create Ticket Intent
     if intent == "CREATE_CHANGE":
         # Check if this is a confirmation to clone
-        clone_match = re.search(r"clone\s+(CR|CHG|MOCK)[-]?(\d+)", lower_q)
+        clone_match = re.search(r"clone\s+(cr|chg|mock)[-]?(\d+)", lower_q)
         if clone_match:
             # Parse details for cloning
             ticket_number = clone_match.group(0).split()[1].upper()
@@ -136,7 +136,10 @@ def ask_question():
             new_ticket = smart_create(template_ticket, start_date, end_date, assigned_to)
             
             if new_ticket:
-                 return jsonify({"answer": f"✅ **Smart Clone Successful!**\n\nI have created a new Change Request **{new_ticket}** based on {ticket_number}.\n\n*   **Scheduled**: {start_date} to {end_date}\n*   **Assigned To**: {assigned_to}\n*   **Status**: Draft"})
+                 from app.config import Config
+                 INSTANCE = Config.SERVICENOW_INSTANCE
+                 view_link = f"{INSTANCE}/nav_to.do?uri=change_request.do?sysparm_query=number={new_ticket}"
+                 return jsonify({"answer": f"✅ **Smart Clone Successful!**\n\nI have created a new Change Request **{new_ticket}** based on {ticket_number}.\n\n*   **Scheduled**: {start_date} to {end_date}\n*   **Assigned To**: {assigned_to}\n*   **Status**: Draft\n\n<div style='margin-top: 10px;'><a href='{view_link}' target='_blank' style='background-color: #293e40; color: white; padding: 8px 16px; text-decoration: none; border-radius: 6px; font-size: 13px; font-weight: 500; display: inline-block;'>View Change</a></div>"})
             else:
                  return jsonify({"answer": "❌ Failed to create cloned ticket."})
 
@@ -168,15 +171,18 @@ def ask_question():
                                       f"  </div>"
                                       f"</div>\n\n"
                                       f"Would you like to use this as a template?<br>\n"
-                                      f"<div style='margin-top: 10px;'><button onclick=\"document.getElementById('user-input').value='Clone {suggestion['number']} for 2025-12-01 to 2025-12-02 assigned to {suggestion.get('assigned_to', 'Me')}'; document.getElementById('user-input').focus();\" style='background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2); transition: all 0.2s;'>Clone Change</button></div>"})
+                                      f"<div style='margin-top: 10px;'><button onclick=\"document.getElementById('user-input').value='Clone {suggestion['number']}'; document.getElementById('user-input').focus();\" style='background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2); transition: all 0.2s;'>Clone Change</button></div>"})
 
         # If no similar changes found, create a new one and show "Red Card"
         # If no similar changes found, just show the apology message (Red Card)
+        # And ask if they want to find a template
         return jsonify({"answer": f"<div style='font-size: 14px; font-weight: 600; color: #dc2626; margin-bottom: 5px;'>⚠️ unable to find the suggstion change</div>\n\n"
                                   f"<div style='background: #fef2f2; border-left: 4px solid #ef4444; padding: 12px; border-radius: 4px; margin: 10px 0; box-shadow: 0 1px 2px rgba(0,0,0,0.05); min-width: 600px;'>"
-                                  f"  <div style='background-color: #fee2e2; color: #991b1b; padding: 8px; border-radius: 4px; font-size: 12px; border: 1px solid #fca5a5;'>"
+                                  f"  <div style='background-color: #fee2e2; color: #991b1b; padding: 8px; border-radius: 4px; font-size: 12px; border: 1px solid #fca5a5; margin-bottom: 10px;'>"
                                   f"    <strong>Apologies:</strong> We could not find a matching change suggestion."
                                   f"  </div>"
+                                  f"  <div style='font-size: 13px; color: #374151; margin-bottom: 8px;'>Do you want me to get a template for the activity?</div>"
+                                  f"  <button onclick=\"document.getElementById('user-input').value='Find template for {question.replace('Create a change for', '').strip()}'; document.getElementById('user-input').focus();\" style='background-color: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 500;'>Yes, find template</button>"
                                   f"</div>"})
 
     # 3. Pending Approvals Intent
