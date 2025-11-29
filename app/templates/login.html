@@ -84,20 +84,23 @@
         .btn-login {
             width: 100%;
             padding: 14px;
-            background: var(--primary-color);
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
             color: white;
             border: none;
-            border-radius: 12px;
+            border-radius: 50px;
             font-size: 1rem;
             font-weight: 600;
+            letter-spacing: 0.5px;
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-            margin-top: 12px;
+            transition: all 0.3s ease;
+            margin-top: 24px;
+            box-shadow: 0 4px 6px rgba(0, 123, 255, 0.2);
         }
 
         .btn-login:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px rgba(0, 123, 255, 0.3);
+            background: linear-gradient(135deg, #0056b3 0%, #004494 100%);
         }
 
         .btn-login:active {
