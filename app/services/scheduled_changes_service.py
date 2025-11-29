@@ -53,8 +53,57 @@ def parse_time_period(query):
         
         return start, datetime.datetime.combine(end, datetime.time(23, 59, 59))
     
-    # Parse different time periods
-    if "today" in query_lower:
+    # --- Dynamic Regex Parsing ---
+    import re
+    
+    # Pattern: "last/next X days/weeks/months/years"
+    # Matches: "last 5 days", "next 2 weeks", "past 3 months", "upcoming 10 days"
+    match = re.search(r"(last|past|previous|next|upcoming)\s+(\d+)\s+(day|week|month|year)s?", query_lower)
+    
+    if match:
+        direction = match.group(1) # last, next, etc.
+        number = int(match.group(2))
+        unit = match.group(3) # day, week, month, year
+        
+        is_past_direction = direction in ["last", "past", "previous"]
+        
+        if unit == "day":
+            delta = datetime.timedelta(days=number)
+        elif unit == "week":
+            delta = datetime.timedelta(weeks=number)
+        elif unit == "month":
+            delta = datetime.timedelta(days=number * 30) # Approx
+        elif unit == "year":
+            delta = datetime.timedelta(days=number * 365) # Approx
+            
+        if is_past_direction:
+            start = datetime.datetime.combine(today - delta, datetime.time(0, 0, 0))
+            end = datetime.datetime.combine(today, datetime.time(23, 59, 59))
+            period_name = f"Last {number} {unit.title()}s"
+            return (start, end, period_name, True)
+        else:
+            start = datetime.datetime.combine(today, datetime.time(0, 0, 0))
+            end = datetime.datetime.combine(today + delta, datetime.time(23, 59, 59))
+            period_name = f"Next {number} {unit.title()}s"
+            return (start, end, period_name, False)
+
+    # --- Static Parsing Fallbacks ---
+    if "last year" in query_lower or "previous year" in query_lower:
+        start = datetime.datetime(now.year - 1, 1, 1)
+        end = datetime.datetime(now.year - 1, 12, 31, 23, 59, 59)
+        return (start, end, f"Last Year ({now.year - 1})", True)
+
+    elif "this year" in query_lower:
+        start = datetime.datetime(now.year, 1, 1)
+        end = datetime.datetime(now.year, 12, 31, 23, 59, 59)
+        return (start, end, f"This Year ({now.year})", False)
+
+    elif "last months" in query_lower: # Fallback for plural without number
+        start = datetime.datetime.combine(today - datetime.timedelta(days=90), datetime.time(0, 0, 0))
+        end = datetime.datetime.combine(today, datetime.time(23, 59, 59))
+        return (start, end, "Last 3 Months", True)
+
+    elif "today" in query_lower:
         start = datetime.datetime.combine(today, datetime.time(0, 0, 0))
         end = datetime.datetime.combine(today, datetime.time(23, 59, 59))
         return (start, end, "Today", False)
@@ -127,8 +176,9 @@ def extract_keywords(query):
     """
     stop_words = [
         "show", "me", "changes", "change", "requests", "tickets", "list", "get", "find",
-        "planned", "scheduled", "upcoming", "completed", "closed", "for", "the", "in", "on", "at",
-        "today", "tomorrow", "weekend", "week", "month", "year", "next", "last", "this", "previous"
+        "planned", "scheduled", "upcoming", "completed", "closed", "for", "the", "in", "on", "at", "from", "all",
+        "today", "tomorrow", "weekend", "week", "month", "year", "next", "last", "this", "previous",
+        "days", "weeks", "months", "years"
     ]
     
     words = query.lower().split()
@@ -160,13 +210,13 @@ def export_scheduled_changes(query):
         # Real API call (simplified version of get_scheduled_changes)
         try:
             url = f"{INSTANCE}/api/now/table/change_request"
-            start_str = start_date.strftime("%Y-%m-%d %H:%M:%S")
-            end_str = end_date.strftime("%Y-%m-%d %H:%M:%S")
+            start_d, start_t = start_date.strftime("%Y-%m-%d"), start_date.strftime("%H:%M:%S")
+            end_d, end_t = end_date.strftime("%Y-%m-%d"), end_date.strftime("%H:%M:%S")
             
-            if is_past:
-                sysparm_query = f"start_dateBETWEENjavascript:gs.dateGenerate('{start_str}')@javascript:gs.dateGenerate('{end_str}')^state=3^state=4^state=7"
+            if is_past and ("completed" in query.lower() or "closed" in query.lower()):
+                sysparm_query = f"start_dateBETWEENjavascript:gs.dateGenerate('{start_d}','{start_t}')@javascript:gs.dateGenerate('{end_d}','{end_t}')^stateIN3,4,7"
             else:
-                sysparm_query = f"start_dateBETWEENjavascript:gs.dateGenerate('{start_str}')@javascript:gs.dateGenerate('{end_str}')"
+                sysparm_query = f"start_dateBETWEENjavascript:gs.dateGenerate('{start_d}','{start_t}')@javascript:gs.dateGenerate('{end_d}','{end_t}')"
             
             params = {
                 "sysparm_query": sysparm_query,
@@ -237,14 +287,15 @@ def get_scheduled_changes(query):
         url = f"{INSTANCE}/api/now/table/change_request"
         
         # Format dates for ServiceNow query
-        start_str = start_date.strftime("%Y-%m-%d %H:%M:%S")
-        end_str = end_date.strftime("%Y-%m-%d %H:%M:%S")
+        start_d, start_t = start_date.strftime("%Y-%m-%d"), start_date.strftime("%H:%M:%S")
+        end_d, end_t = end_date.strftime("%Y-%m-%d"), end_date.strftime("%H:%M:%S")
         
         # Build query based on whether we want past or future changes
-        if is_past:
-            sysparm_query = f"start_dateBETWEENjavascript:gs.dateGenerate('{start_str}')@javascript:gs.dateGenerate('{end_str}')^state=3^state=4^state=7"
+        # Only filter by "Closed/Completed" state if explicitly requested
+        if is_past and ("completed" in query.lower() or "closed" in query.lower()):
+            sysparm_query = f"start_dateBETWEENjavascript:gs.dateGenerate('{start_d}','{start_t}')@javascript:gs.dateGenerate('{end_d}','{end_t}')^stateIN3,4,7"
         else:
-            sysparm_query = f"start_dateBETWEENjavascript:gs.dateGenerate('{start_str}')@javascript:gs.dateGenerate('{end_str}')"
+            sysparm_query = f"start_dateBETWEENjavascript:gs.dateGenerate('{start_d}','{start_t}')@javascript:gs.dateGenerate('{end_d}','{end_t}')"
         
         params = {
             "sysparm_query": sysparm_query,
@@ -373,7 +424,12 @@ def _get_mock_scheduled_changes(period_name, is_past, keywords=None):
 def _format_changes_table(changes, period_name, is_past, query_text, is_mock=False):
     """Format changes data as HTML table"""
     
-    status_text = "Completed" if is_past else "Scheduled"
+    if "completed" in query_text.lower() or "closed" in query_text.lower():
+        status_text = "Completed"
+    elif is_past:
+        status_text = "Past"
+    else:
+        status_text = "Scheduled"
     mock_note = " (Demo Data)" if is_mock else ""
     
     # URL encode the query for the export link

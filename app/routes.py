@@ -86,6 +86,11 @@ def ask_question():
         intent = "TEMPLATE_LOOKUP"
         print(f"DEBUG: Override Intent to TEMPLATE_LOOKUP (Keyword Match)")
 
+    # Override: If user explicitly asks to "list" changes, force SCHEDULE_QUERY (avoid SHOW_STATS)
+    if "list" in lower_q and "change" in lower_q:
+        intent = "SCHEDULE_QUERY"
+        print(f"DEBUG: Override Intent to SCHEDULE_QUERY (Keyword Match: 'list' + 'change')")
+
     # 1. Ticket Status Lookup
     if intent == "TICKET_STATUS":
         ticket_match = re.search(r"\b(cr|chg|mock)[-]?(\d+)\b", lower_q)
