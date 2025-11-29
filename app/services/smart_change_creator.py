@@ -228,8 +228,24 @@ def find_relevant_templates(query):
         response = requests.get(url, auth=HTTPBasicAuth(USER, PASSWORD), params=params, headers=headers)
         
         if response.status_code == 200:
-            data = response.json()
-            return data.get('result', [])
+            results = response.json().get('result', [])
+            if results:
+                return results
+        
+        # Fallback: If no templates found (or search failed), try to find the generic template
+        print("No specific templates found. Searching for generic template ABC00000...")
+        fallback_query = "table=change_request^active=true^nameSTARTSWITHABC00000"
+        
+        params = {
+            "sysparm_query": fallback_query,
+            "sysparm_limit": 1,
+            "sysparm_fields": "sys_id,name,short_description,template",
+            "sysparm_display_value": "true"
+        }
+        
+        fallback_response = requests.get(url, auth=HTTPBasicAuth(USER, PASSWORD), params=params, headers=headers)
+        if fallback_response.status_code == 200:
+            return fallback_response.json().get('result', [])
             
         return []
 

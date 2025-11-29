@@ -273,6 +273,11 @@ def recommend_template(query, templates):
         link = f"{INSTANCE}/nav_to.do?uri=sys_template.do?sys_id={sys_id}"
         template_list_str += f"{i+1}. Name: {t.get('name')}\n   Description: {t.get('short_description')}\n   Fields: {t.get('template')}\n   Link: {link}\n\n"
 
+    # Check if we are in fallback mode (Only generic template found)
+    is_fallback = False
+    if len(templates) == 1 and "ABC00000" in templates[0].get('name', ''):
+        is_fallback = True
+
     prompt = (
         "You are a Change Management Assistant. The user asked for a template.\n"
         "I have found the following templates in ServiceNow:\n\n"
@@ -280,21 +285,40 @@ def recommend_template(query, templates):
         f"User Query: \"{query}\"\n\n"
         "Task:\n"
         "1. Analyze the user's intent and the available templates.\n"
-        "2. List ALL relevant templates found (up to 3).\n"
+    )
+
+    if is_fallback:
+        prompt += (
+            "2. **IMPORTANT**: Since only the generic template (ABC00000) was found, you MUST start your response by explicitly stating:\n"
+            "   \"I couldn't find any specific matching templates for your request, so I suggest using the generic template below.\"\n"
+        )
+    else:
+        prompt += "2. List ALL relevant templates found (up to 3).\n"
+
+    prompt += (
         "3. Format each template EXACTLY as follows:\n"
         "   - **Template Name** (Header)\n"
         "   - **Description**: [One line description]\n"
         "   - **Pre-filled Fields**: [One line summary of key fields]\n"
         "   - [HTML Button to View in ServiceNow]\n\n"
         "Output Format:\n"
-        "I found [X] templates matching your request:\n\n"
+    )
+    
+    if is_fallback:
+        prompt += "I couldn't find any specific matching templates for your request, so I suggest using the generic template below:\n\n"
+
+    prompt += (
         "### 1. [Template Name]\n\n"
         "**Description**: [Description]\n\n"
         "**Pre-filled Fields**: [Key fields]\n\n"
         "<a href='[Link]' target='_blank' style='background-color: #293e40; color: white; padding: 5px 10px; text-decoration: none; border-radius: 5px; font-size: 12px;'>🔗 View in ServiceNow</a>\n\n"
-        "### 2. [Template Name]\n"
-        "...\n"
     )
+    
+    if not is_fallback:
+        prompt += (
+            "### 2. [Template Name]\n"
+            "...\n"
+        )
     
     try:
         response = llm.invoke(prompt)
