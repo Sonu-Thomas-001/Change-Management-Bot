@@ -68,6 +68,7 @@ body {
     gap: 15px;
 }
 
+/* Text Buttons */
 .header-btn {
     display: inline-flex;
     align-items: center;
@@ -108,17 +109,50 @@ body {
     border-color: #d0d0d0;
 }
 
-#clear-btn {
-    background: none;
+/* Icon Buttons */
+.header-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
     border: none;
-    color: #031f4a;
     cursor: pointer;
-    opacity: 0.8;
-    transition: opacity 0.2s;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    color: #031f4a;
 }
 
-#clear-btn:hover {
-    opacity: 1;
+.header-icon-btn svg {
+    width: 20px;
+    height: 20px;
+    stroke-width: 2;
+}
+
+.header-icon-btn.primary {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    color: white;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.header-icon-btn.primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 123, 255, 0.3);
+    background: linear-gradient(135deg, #0069d9 0%, #004494 100%);
+}
+
+.header-icon-btn.secondary {
+    background: white;
+    color: #555;
+    border: 1px solid #e0e0e0;
+}
+
+.header-icon-btn.secondary:hover {
+    background: #f8f9fa;
+    color: #333;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+    border-color: #d0d0d0;
 }
 
 /* --- CHAT BOX AREA --- */
@@ -458,22 +492,6 @@ body {
     100% {
         box-shadow: 0 0 0 0 rgba(220, 53, 69, 0);
     }
-}
-
-/* Style for the new PDF Export button */
-#export-pdf-btn {
-    background: none;
-    border: none;
-    color: #031f4a;
-    cursor: pointer;
-    opacity: 0.8;
-    transition: opacity 0.2s;
-    padding: 0;
-    margin: 0;
-}
-
-#export-pdf-btn:hover {
-    opacity: 1;
 }
 
 canvas {
