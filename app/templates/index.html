@@ -20,9 +20,9 @@
             <div class="header-content">
                 <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Change Assistant" class="logo">
                 <div class="header-actions">
-                    <div style="margin-right: 15px;">
-                        <a href="/analytics" class="analytics-link">📊 Analytics</a>
-                        <a href="/logout" class="analytics-link" style="margin-left: 10px;">🚪 Logout</a>
+                    <div style="margin-right: 15px; display: flex; gap: 10px;">
+                        <a href="/analytics" class="header-btn primary">Analytics</a>
+                        <a href="/logout" class="header-btn secondary">Logout</a>
                     </div>
 
                     <button id="export-pdf-btn" title="Export to PDF">

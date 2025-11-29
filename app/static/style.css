@@ -68,11 +68,44 @@ body {
     gap: 15px;
 }
 
-.analytics-link {
-    color: #031f4a;
+.header-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: 30px;
     text-decoration: none;
-    font-size: 0.9rem;
-    opacity: 0.9;
+    font-size: 0.95rem;
+    font-weight: 600;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    border: none;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    letter-spacing: 0.3px;
+}
+
+.header-btn.primary {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    color: white;
+}
+
+.header-btn.primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 123, 255, 0.3);
+    background: linear-gradient(135deg, #0069d9 0%, #004494 100%);
+}
+
+.header-btn.secondary {
+    background: white;
+    color: #555;
+    border: 1px solid #e0e0e0;
+}
+
+.header-btn.secondary:hover {
+    background: #f8f9fa;
+    color: #333;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+    border-color: #d0d0d0;
 }
 
 #clear-btn {
@@ -427,8 +460,6 @@ body {
     }
 }
 
-/* Find the .header-actions CSS block (around line 52) and replace or add this selector: */
-
 /* Style for the new PDF Export button */
 #export-pdf-btn {
     background: none;
@@ -444,10 +475,6 @@ body {
 #export-pdf-btn:hover {
     opacity: 1;
 }
-
-/* ... Rest of your .header-actions and other CSS remains the same ... */
-
-/* Add this at the end of static/style.css */
 
 canvas {
     max-width: 100% !important;
