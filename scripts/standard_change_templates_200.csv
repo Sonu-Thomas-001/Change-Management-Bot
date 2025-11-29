@@ -1,201 +1,51 @@
-template_number,template_name,template_description,proposal_type,category,description
-ABC00001,ABC00001 - API Upgrade,Upgrade API gateway,Standard,API,Upgrade API gateway as part of standard change activity 1.
-ABC00002,ABC00002 - Email Security,Update spam filters,Standard,Security,Update spam filters as part of standard change activity 2.
-ABC00003,ABC00003 - Storage Expansion,Increasing SAN storage,Standard,Hardware,Increasing SAN storage as part of standard change activity 3.
-ABC00004,ABC00004 - Cloud Scaling,Scale resources,Standard,Cloud,Scale resources as part of standard change activity 4.
-ABC00005,ABC00005 - Access Review,Review user access,Standard,Access Control,Review user access as part of standard change activity 5.
-ABC00006,ABC00006 - App Deployment,Deploying new release,Standard,Application,Deploying new release as part of standard change activity 6.
-ABC00007,ABC00007 - Certificate Renewal,Update TLS certs,Standard,Security,Update TLS certs as part of standard change activity 7.
-ABC00008,ABC00008 - Certificate Renewal,Update TLS certs,Standard,Security,Update TLS certs as part of standard change activity 8.
-ABC00009,ABC00009 - DR Drill,Set up DR activity,Standard,Disaster Recovery,Set up DR activity as part of standard change activity 9.
-ABC00010,ABC00010 - API Upgrade,Upgrade API gateway,Standard,API,Upgrade API gateway as part of standard change activity 10.
-ABC00011,ABC00011 - Disk Replacement,Replace degraded disks,Standard,Hardware,Replace degraded disks as part of standard change activity 11.
-ABC00012,ABC00012 - VPN Update,Modify VPN configs,Standard,Network,Modify VPN configs as part of standard change activity 12.
-ABC00013,ABC00013 - Compliance Fix,Implement audit fixes,Standard,Compliance,Implement audit fixes as part of standard change activity 13.
-ABC00014,ABC00014 - Compliance Fix,Implement audit fixes,Standard,Compliance,Implement audit fixes as part of standard change activity 14.
-ABC00015,ABC00015 - SFTP Update,Modify SFTP config,Standard,Integration,Modify SFTP config as part of standard change activity 15.
-ABC00016,ABC00016 - App Deployment,Deploying new release,Standard,Application,Deploying new release as part of standard change activity 16.
-ABC00017,ABC00017 - API Upgrade,Upgrade API gateway,Standard,API,Upgrade API gateway as part of standard change activity 17.
-ABC00018,ABC00018 - Load Balancer Update,Modify LB configs,Standard,Network,Modify LB configs as part of standard change activity 18.
-ABC00019,ABC00019 - Switch Replacement,Replacing EOL switches,Standard,Network,Replacing EOL switches as part of standard change activity 19.
-ABC00020,ABC00020 - Firewall Update,Updating firewall rules,Standard,Security,Updating firewall rules as part of standard change activity 20.
-ABC00021,ABC00021 - Monitoring Agent,Install/upgrade agents,Standard,Monitoring,Install/upgrade agents as part of standard change activity 21.
-ABC00022,ABC00022 - Backup Update,Updating backup retention,Standard,Backup,Updating backup retention as part of standard change activity 22.
-ABC00023,ABC00023 - Load Balancer Update,Modify LB configs,Standard,Network,Modify LB configs as part of standard change activity 23.
-ABC00024,ABC00024 - Disk Replacement,Replace degraded disks,Standard,Hardware,Replace degraded disks as part of standard change activity 24.
-ABC00025,ABC00025 - Cloud Scaling,Scale resources,Standard,Cloud,Scale resources as part of standard change activity 25.
-ABC00026,ABC00026 - Disk Replacement,Replace degraded disks,Standard,Hardware,Replace degraded disks as part of standard change activity 26.
-ABC00027,ABC00027 - API Upgrade,Upgrade API gateway,Standard,API,Upgrade API gateway as part of standard change activity 27.
-ABC00028,ABC00028 - Email Security,Update spam filters,Standard,Security,Update spam filters as part of standard change activity 28.
-ABC00029,ABC00029 - Backup Update,Updating backup retention,Standard,Backup,Updating backup retention as part of standard change activity 29.
-ABC00030,ABC00030 - SFTP Update,Modify SFTP config,Standard,Integration,Modify SFTP config as part of standard change activity 30.
-ABC00031,ABC00031 - Switch Replacement,Replacing EOL switches,Standard,Network,Replacing EOL switches as part of standard change activity 31.
-ABC00032,ABC00032 - Storage Expansion,Increasing SAN storage,Standard,Hardware,Increasing SAN storage as part of standard change activity 32.
-ABC00033,ABC00033 - Access Review,Review user access,Standard,Access Control,Review user access as part of standard change activity 33.
-ABC00034,ABC00034 - Storage Expansion,Increasing SAN storage,Standard,Hardware,Increasing SAN storage as part of standard change activity 34.
-ABC00035,ABC00035 - Load Balancer Update,Modify LB configs,Standard,Network,Modify LB configs as part of standard change activity 35.
-ABC00036,ABC00036 - Storage Expansion,Increasing SAN storage,Standard,Hardware,Increasing SAN storage as part of standard change activity 36.
-ABC00037,ABC00037 - Email Security,Update spam filters,Standard,Security,Update spam filters as part of standard change activity 37.
-ABC00038,ABC00038 - Firewall Update,Updating firewall rules,Standard,Security,Updating firewall rules as part of standard change activity 38.
-ABC00039,ABC00039 - Monitoring Agent,Install/upgrade agents,Standard,Monitoring,Install/upgrade agents as part of standard change activity 39.
-ABC00040,ABC00040 - Certificate Renewal,Update TLS certs,Standard,Security,Update TLS certs as part of standard change activity 40.
-ABC00041,ABC00041 - Firewall Update,Updating firewall rules,Standard,Security,Updating firewall rules as part of standard change activity 41.
-ABC00042,ABC00042 - Access Review,Review user access,Standard,Access Control,Review user access as part of standard change activity 42.
-ABC00043,ABC00043 - OS Patch Update,Applying monthly OS patches,Standard,Software,Applying monthly OS patches as part of standard change activity 43.
-ABC00044,ABC00044 - Access Review,Review user access,Standard,Access Control,Review user access as part of standard change activity 44.
-ABC00045,ABC00045 - Compliance Fix,Implement audit fixes,Standard,Compliance,Implement audit fixes as part of standard change activity 45.
-ABC00046,ABC00046 - Switch Replacement,Replacing EOL switches,Standard,Network,Replacing EOL switches as part of standard change activity 46.
-ABC00047,ABC00047 - Load Balancer Update,Modify LB configs,Standard,Network,Modify LB configs as part of standard change activity 47.
-ABC00048,ABC00048 - Batch Job Update,Update scheduled jobs,Standard,Application,Update scheduled jobs as part of standard change activity 48.
-ABC00049,ABC00049 - Cloud Scaling,Scale resources,Standard,Cloud,Scale resources as part of standard change activity 49.
-ABC00050,ABC00050 - Load Balancer Update,Modify LB configs,Standard,Network,Modify LB configs as part of standard change activity 50.
-ABC00051,ABC00051 - Cloud Scaling,Scale resources,Standard,Cloud,Scale resources as part of standard change activity 51.
-ABC00052,ABC00052 - Monitoring Agent,Install/upgrade agents,Standard,Monitoring,Install/upgrade agents as part of standard change activity 52.
-ABC00053,ABC00053 - DB Optimization,Optimizing indices,Standard,Database,Optimizing indices as part of standard change activity 53.
-ABC00054,ABC00054 - Monitoring Agent,Install/upgrade agents,Standard,Monitoring,Install/upgrade agents as part of standard change activity 54.
-ABC00055,ABC00055 - App Deployment,Deploying new release,Standard,Application,Deploying new release as part of standard change activity 55.
-ABC00056,ABC00056 - API Upgrade,Upgrade API gateway,Standard,API,Upgrade API gateway as part of standard change activity 56.
-ABC00057,ABC00057 - Backup Update,Updating backup retention,Standard,Backup,Updating backup retention as part of standard change activity 57.
-ABC00058,ABC00058 - Email Security,Update spam filters,Standard,Security,Update spam filters as part of standard change activity 58.
-ABC00059,ABC00059 - Monitoring Agent,Install/upgrade agents,Standard,Monitoring,Install/upgrade agents as part of standard change activity 59.
-ABC00060,ABC00060 - SFTP Update,Modify SFTP config,Standard,Integration,Modify SFTP config as part of standard change activity 60.
-ABC00061,ABC00061 - Switch Replacement,Replacing EOL switches,Standard,Network,Replacing EOL switches as part of standard change activity 61.
-ABC00062,ABC00062 - API Upgrade,Upgrade API gateway,Standard,API,Upgrade API gateway as part of standard change activity 62.
-ABC00063,ABC00063 - Disk Replacement,Replace degraded disks,Standard,Hardware,Replace degraded disks as part of standard change activity 63.
-ABC00064,ABC00064 - Disk Replacement,Replace degraded disks,Standard,Hardware,Replace degraded disks as part of standard change activity 64.
-ABC00065,ABC00065 - OS Patch Update,Applying monthly OS patches,Standard,Software,Applying monthly OS patches as part of standard change activity 65.
-ABC00066,ABC00066 - OS Patch Update,Applying monthly OS patches,Standard,Software,Applying monthly OS patches as part of standard change activity 66.
-ABC00067,ABC00067 - DB Optimization,Optimizing indices,Standard,Database,Optimizing indices as part of standard change activity 67.
-ABC00068,ABC00068 - DR Drill,Set up DR activity,Standard,Disaster Recovery,Set up DR activity as part of standard change activity 68.
-ABC00069,ABC00069 - Access Review,Review user access,Standard,Access Control,Review user access as part of standard change activity 69.
-ABC00070,ABC00070 - Cloud Scaling,Scale resources,Standard,Cloud,Scale resources as part of standard change activity 70.
-ABC00071,ABC00071 - Disk Replacement,Replace degraded disks,Standard,Hardware,Replace degraded disks as part of standard change activity 71.
-ABC00072,ABC00072 - API Upgrade,Upgrade API gateway,Standard,API,Upgrade API gateway as part of standard change activity 72.
-ABC00073,ABC00073 - Email Security,Update spam filters,Standard,Security,Update spam filters as part of standard change activity 73.
-ABC00074,ABC00074 - Certificate Renewal,Update TLS certs,Standard,Security,Update TLS certs as part of standard change activity 74.
-ABC00075,ABC00075 - Email Security,Update spam filters,Standard,Security,Update spam filters as part of standard change activity 75.
-ABC00076,ABC00076 - Load Balancer Update,Modify LB configs,Standard,Network,Modify LB configs as part of standard change activity 76.
-ABC00077,ABC00077 - Switch Replacement,Replacing EOL switches,Standard,Network,Replacing EOL switches as part of standard change activity 77.
-ABC00078,ABC00078 - Backup Update,Updating backup retention,Standard,Backup,Updating backup retention as part of standard change activity 78.
-ABC00079,ABC00079 - Cloud Scaling,Scale resources,Standard,Cloud,Scale resources as part of standard change activity 79.
-ABC00080,ABC00080 - VPN Update,Modify VPN configs,Standard,Network,Modify VPN configs as part of standard change activity 80.
-ABC00081,ABC00081 - Batch Job Update,Update scheduled jobs,Standard,Application,Update scheduled jobs as part of standard change activity 81.
-ABC00082,ABC00082 - Monitoring Agent,Install/upgrade agents,Standard,Monitoring,Install/upgrade agents as part of standard change activity 82.
-ABC00083,ABC00083 - Firewall Update,Updating firewall rules,Standard,Security,Updating firewall rules as part of standard change activity 83.
-ABC00084,ABC00084 - Backup Update,Updating backup retention,Standard,Backup,Updating backup retention as part of standard change activity 84.
-ABC00085,ABC00085 - App Deployment,Deploying new release,Standard,Application,Deploying new release as part of standard change activity 85.
-ABC00086,ABC00086 - SFTP Update,Modify SFTP config,Standard,Integration,Modify SFTP config as part of standard change activity 86.
-ABC00087,ABC00087 - OS Patch Update,Applying monthly OS patches,Standard,Software,Applying monthly OS patches as part of standard change activity 87.
-ABC00088,ABC00088 - Email Security,Update spam filters,Standard,Security,Update spam filters as part of standard change activity 88.
-ABC00089,ABC00089 - Disk Replacement,Replace degraded disks,Standard,Hardware,Replace degraded disks as part of standard change activity 89.
-ABC00090,ABC00090 - DR Drill,Set up DR activity,Standard,Disaster Recovery,Set up DR activity as part of standard change activity 90.
-ABC00091,ABC00091 - Email Security,Update spam filters,Standard,Security,Update spam filters as part of standard change activity 91.
-ABC00092,ABC00092 - DR Drill,Set up DR activity,Standard,Disaster Recovery,Set up DR activity as part of standard change activity 92.
-ABC00093,ABC00093 - OS Patch Update,Applying monthly OS patches,Standard,Software,Applying monthly OS patches as part of standard change activity 93.
-ABC00094,ABC00094 - Certificate Renewal,Update TLS certs,Standard,Security,Update TLS certs as part of standard change activity 94.
-ABC00095,ABC00095 - Batch Job Update,Update scheduled jobs,Standard,Application,Update scheduled jobs as part of standard change activity 95.
-ABC00096,ABC00096 - Cloud Scaling,Scale resources,Standard,Cloud,Scale resources as part of standard change activity 96.
-ABC00097,ABC00097 - Load Balancer Update,Modify LB configs,Standard,Network,Modify LB configs as part of standard change activity 97.
-ABC00098,ABC00098 - Backup Update,Updating backup retention,Standard,Backup,Updating backup retention as part of standard change activity 98.
-ABC00099,ABC00099 - Cloud Scaling,Scale resources,Standard,Cloud,Scale resources as part of standard change activity 99.
-ABC00100,ABC00100 - OS Patch Update,Applying monthly OS patches,Standard,Software,Applying monthly OS patches as part of standard change activity 100.
-ABC00101,ABC00101 - Certificate Renewal,Update TLS certs,Standard,Security,Update TLS certs as part of standard change activity 101.
-ABC00102,ABC00102 - Email Security,Update spam filters,Standard,Security,Update spam filters as part of standard change activity 102.
-ABC00103,ABC00103 - Disk Replacement,Replace degraded disks,Standard,Hardware,Replace degraded disks as part of standard change activity 103.
-ABC00104,ABC00104 - Access Review,Review user access,Standard,Access Control,Review user access as part of standard change activity 104.
-ABC00105,ABC00105 - DB Optimization,Optimizing indices,Standard,Database,Optimizing indices as part of standard change activity 105.
-ABC00106,ABC00106 - Batch Job Update,Update scheduled jobs,Standard,Application,Update scheduled jobs as part of standard change activity 106.
-ABC00107,ABC00107 - OS Patch Update,Applying monthly OS patches,Standard,Software,Applying monthly OS patches as part of standard change activity 107.
-ABC00108,ABC00108 - DB Optimization,Optimizing indices,Standard,Database,Optimizing indices as part of standard change activity 108.
-ABC00109,ABC00109 - Cloud Scaling,Scale resources,Standard,Cloud,Scale resources as part of standard change activity 109.
-ABC00110,ABC00110 - Monitoring Agent,Install/upgrade agents,Standard,Monitoring,Install/upgrade agents as part of standard change activity 110.
-ABC00111,ABC00111 - App Deployment,Deploying new release,Standard,Application,Deploying new release as part of standard change activity 111.
-ABC00112,ABC00112 - Access Review,Review user access,Standard,Access Control,Review user access as part of standard change activity 112.
-ABC00113,ABC00113 - Load Balancer Update,Modify LB configs,Standard,Network,Modify LB configs as part of standard change activity 113.
-ABC00114,ABC00114 - App Deployment,Deploying new release,Standard,Application,Deploying new release as part of standard change activity 114.
-ABC00115,ABC00115 - Cloud Scaling,Scale resources,Standard,Cloud,Scale resources as part of standard change activity 115.
-ABC00116,ABC00116 - Batch Job Update,Update scheduled jobs,Standard,Application,Update scheduled jobs as part of standard change activity 116.
-ABC00117,ABC00117 - OS Patch Update,Applying monthly OS patches,Standard,Software,Applying monthly OS patches as part of standard change activity 117.
-ABC00118,ABC00118 - DB Optimization,Optimizing indices,Standard,Database,Optimizing indices as part of standard change activity 118.
-ABC00119,ABC00119 - OS Patch Update,Applying monthly OS patches,Standard,Software,Applying monthly OS patches as part of standard change activity 119.
-ABC00120,ABC00120 - Cloud Scaling,Scale resources,Standard,Cloud,Scale resources as part of standard change activity 120.
-ABC00121,ABC00121 - API Upgrade,Upgrade API gateway,Standard,API,Upgrade API gateway as part of standard change activity 121.
-ABC00122,ABC00122 - Batch Job Update,Update scheduled jobs,Standard,Application,Update scheduled jobs as part of standard change activity 122.
-ABC00123,ABC00123 - DB Optimization,Optimizing indices,Standard,Database,Optimizing indices as part of standard change activity 123.
-ABC00124,ABC00124 - Storage Expansion,Increasing SAN storage,Standard,Hardware,Increasing SAN storage as part of standard change activity 124.
-ABC00125,ABC00125 - Firewall Update,Updating firewall rules,Standard,Security,Updating firewall rules as part of standard change activity 125.
-ABC00126,ABC00126 - VPN Update,Modify VPN configs,Standard,Network,Modify VPN configs as part of standard change activity 126.
-ABC00127,ABC00127 - Switch Replacement,Replacing EOL switches,Standard,Network,Replacing EOL switches as part of standard change activity 127.
-ABC00128,ABC00128 - App Deployment,Deploying new release,Standard,Application,Deploying new release as part of standard change activity 128.
-ABC00129,ABC00129 - Firewall Update,Updating firewall rules,Standard,Security,Updating firewall rules as part of standard change activity 129.
-ABC00130,ABC00130 - App Deployment,Deploying new release,Standard,Application,Deploying new release as part of standard change activity 130.
-ABC00131,ABC00131 - Email Security,Update spam filters,Standard,Security,Update spam filters as part of standard change activity 131.
-ABC00132,ABC00132 - Certificate Renewal,Update TLS certs,Standard,Security,Update TLS certs as part of standard change activity 132.
-ABC00133,ABC00133 - App Deployment,Deploying new release,Standard,Application,Deploying new release as part of standard change activity 133.
-ABC00134,ABC00134 - DR Drill,Set up DR activity,Standard,Disaster Recovery,Set up DR activity as part of standard change activity 134.
-ABC00135,ABC00135 - Disk Replacement,Replace degraded disks,Standard,Hardware,Replace degraded disks as part of standard change activity 135.
-ABC00136,ABC00136 - Firewall Update,Updating firewall rules,Standard,Security,Updating firewall rules as part of standard change activity 136.
-ABC00137,ABC00137 - API Upgrade,Upgrade API gateway,Standard,API,Upgrade API gateway as part of standard change activity 137.
-ABC00138,ABC00138 - Backup Update,Updating backup retention,Standard,Backup,Updating backup retention as part of standard change activity 138.
-ABC00139,ABC00139 - Storage Expansion,Increasing SAN storage,Standard,Hardware,Increasing SAN storage as part of standard change activity 139.
-ABC00140,ABC00140 - DR Drill,Set up DR activity,Standard,Disaster Recovery,Set up DR activity as part of standard change activity 140.
-ABC00141,ABC00141 - SFTP Update,Modify SFTP config,Standard,Integration,Modify SFTP config as part of standard change activity 141.
-ABC00142,ABC00142 - Switch Replacement,Replacing EOL switches,Standard,Network,Replacing EOL switches as part of standard change activity 142.
-ABC00143,ABC00143 - Disk Replacement,Replace degraded disks,Standard,Hardware,Replace degraded disks as part of standard change activity 143.
-ABC00144,ABC00144 - VPN Update,Modify VPN configs,Standard,Network,Modify VPN configs as part of standard change activity 144.
-ABC00145,ABC00145 - Disk Replacement,Replace degraded disks,Standard,Hardware,Replace degraded disks as part of standard change activity 145.
-ABC00146,ABC00146 - Load Balancer Update,Modify LB configs,Standard,Network,Modify LB configs as part of standard change activity 146.
-ABC00147,ABC00147 - Backup Update,Updating backup retention,Standard,Backup,Updating backup retention as part of standard change activity 147.
-ABC00148,ABC00148 - Email Security,Update spam filters,Standard,Security,Update spam filters as part of standard change activity 148.
-ABC00149,ABC00149 - App Deployment,Deploying new release,Standard,Application,Deploying new release as part of standard change activity 149.
-ABC00150,ABC00150 - Storage Expansion,Increasing SAN storage,Standard,Hardware,Increasing SAN storage as part of standard change activity 150.
-ABC00151,ABC00151 - Disk Replacement,Replace degraded disks,Standard,Hardware,Replace degraded disks as part of standard change activity 151.
-ABC00152,ABC00152 - DB Optimization,Optimizing indices,Standard,Database,Optimizing indices as part of standard change activity 152.
-ABC00153,ABC00153 - Firewall Update,Updating firewall rules,Standard,Security,Updating firewall rules as part of standard change activity 153.
-ABC00154,ABC00154 - Switch Replacement,Replacing EOL switches,Standard,Network,Replacing EOL switches as part of standard change activity 154.
-ABC00155,ABC00155 - Switch Replacement,Replacing EOL switches,Standard,Network,Replacing EOL switches as part of standard change activity 155.
-ABC00156,ABC00156 - OS Patch Update,Applying monthly OS patches,Standard,Software,Applying monthly OS patches as part of standard change activity 156.
-ABC00157,ABC00157 - SFTP Update,Modify SFTP config,Standard,Integration,Modify SFTP config as part of standard change activity 157.
-ABC00158,ABC00158 - DB Optimization,Optimizing indices,Standard,Database,Optimizing indices as part of standard change activity 158.
-ABC00159,ABC00159 - Certificate Renewal,Update TLS certs,Standard,Security,Update TLS certs as part of standard change activity 159.
-ABC00160,ABC00160 - Access Review,Review user access,Standard,Access Control,Review user access as part of standard change activity 160.
-ABC00161,ABC00161 - Cloud Scaling,Scale resources,Standard,Cloud,Scale resources as part of standard change activity 161.
-ABC00162,ABC00162 - SFTP Update,Modify SFTP config,Standard,Integration,Modify SFTP config as part of standard change activity 162.
-ABC00163,ABC00163 - Cloud Scaling,Scale resources,Standard,Cloud,Scale resources as part of standard change activity 163.
-ABC00164,ABC00164 - Firewall Update,Updating firewall rules,Standard,Security,Updating firewall rules as part of standard change activity 164.
-ABC00165,ABC00165 - Access Review,Review user access,Standard,Access Control,Review user access as part of standard change activity 165.
-ABC00166,ABC00166 - API Upgrade,Upgrade API gateway,Standard,API,Upgrade API gateway as part of standard change activity 166.
-ABC00167,ABC00167 - Load Balancer Update,Modify LB configs,Standard,Network,Modify LB configs as part of standard change activity 167.
-ABC00168,ABC00168 - Load Balancer Update,Modify LB configs,Standard,Network,Modify LB configs as part of standard change activity 168.
-ABC00169,ABC00169 - Certificate Renewal,Update TLS certs,Standard,Security,Update TLS certs as part of standard change activity 169.
-ABC00170,ABC00170 - Access Review,Review user access,Standard,Access Control,Review user access as part of standard change activity 170.
-ABC00171,ABC00171 - Storage Expansion,Increasing SAN storage,Standard,Hardware,Increasing SAN storage as part of standard change activity 171.
-ABC00172,ABC00172 - Access Review,Review user access,Standard,Access Control,Review user access as part of standard change activity 172.
-ABC00173,ABC00173 - Access Review,Review user access,Standard,Access Control,Review user access as part of standard change activity 173.
-ABC00174,ABC00174 - Email Security,Update spam filters,Standard,Security,Update spam filters as part of standard change activity 174.
-ABC00175,ABC00175 - Storage Expansion,Increasing SAN storage,Standard,Hardware,Increasing SAN storage as part of standard change activity 175.
-ABC00176,ABC00176 - Certificate Renewal,Update TLS certs,Standard,Security,Update TLS certs as part of standard change activity 176.
-ABC00177,ABC00177 - App Deployment,Deploying new release,Standard,Application,Deploying new release as part of standard change activity 177.
-ABC00178,ABC00178 - Email Security,Update spam filters,Standard,Security,Update spam filters as part of standard change activity 178.
-ABC00179,ABC00179 - Switch Replacement,Replacing EOL switches,Standard,Network,Replacing EOL switches as part of standard change activity 179.
-ABC00180,ABC00180 - DR Drill,Set up DR activity,Standard,Disaster Recovery,Set up DR activity as part of standard change activity 180.
-ABC00181,ABC00181 - Monitoring Agent,Install/upgrade agents,Standard,Monitoring,Install/upgrade agents as part of standard change activity 181.
-ABC00182,ABC00182 - Access Review,Review user access,Standard,Access Control,Review user access as part of standard change activity 182.
-ABC00183,ABC00183 - Backup Update,Updating backup retention,Standard,Backup,Updating backup retention as part of standard change activity 183.
-ABC00184,ABC00184 - Compliance Fix,Implement audit fixes,Standard,Compliance,Implement audit fixes as part of standard change activity 184.
-ABC00185,ABC00185 - App Deployment,Deploying new release,Standard,Application,Deploying new release as part of standard change activity 185.
-ABC00186,ABC00186 - API Upgrade,Upgrade API gateway,Standard,API,Upgrade API gateway as part of standard change activity 186.
-ABC00187,ABC00187 - Switch Replacement,Replacing EOL switches,Standard,Network,Replacing EOL switches as part of standard change activity 187.
-ABC00188,ABC00188 - Switch Replacement,Replacing EOL switches,Standard,Network,Replacing EOL switches as part of standard change activity 188.
-ABC00189,ABC00189 - Monitoring Agent,Install/upgrade agents,Standard,Monitoring,Install/upgrade agents as part of standard change activity 189.
-ABC00190,ABC00190 - VPN Update,Modify VPN configs,Standard,Network,Modify VPN configs as part of standard change activity 190.
-ABC00191,ABC00191 - Certificate Renewal,Update TLS certs,Standard,Security,Update TLS certs as part of standard change activity 191.
-ABC00192,ABC00192 - DR Drill,Set up DR activity,Standard,Disaster Recovery,Set up DR activity as part of standard change activity 192.
-ABC00193,ABC00193 - Monitoring Agent,Install/upgrade agents,Standard,Monitoring,Install/upgrade agents as part of standard change activity 193.
-ABC00194,ABC00194 - Switch Replacement,Replacing EOL switches,Standard,Network,Replacing EOL switches as part of standard change activity 194.
-ABC00195,ABC00195 - API Upgrade,Upgrade API gateway,Standard,API,Upgrade API gateway as part of standard change activity 195.
-ABC00196,ABC00196 - DR Drill,Set up DR activity,Standard,Disaster Recovery,Set up DR activity as part of standard change activity 196.
-ABC00197,ABC00197 - Storage Expansion,Increasing SAN storage,Standard,Hardware,Increasing SAN storage as part of standard change activity 197.
-ABC00198,ABC00198 - App Deployment,Deploying new release,Standard,Application,Deploying new release as part of standard change activity 198.
-ABC00199,ABC00199 - App Deployment,Deploying new release,Standard,Application,Deploying new release as part of standard change activity 199.
-ABC00200,ABC00200 - Access Review,Review user access,Standard,Access Control,Review user access as part of standard change activity 200.
+template_number,template_name,Change Type,Usage,Approval Model,Lead Time,Owning Group,Applicable Scenarios,Active,Global,Group,Name,Next Related Template,Next Related Child Template,Short description,Show on template bar,Stand alone,User
+ABC00001,Software Update - Activity 1,Software Update,Used for routine updates to ensure system stability.,CAB Approval,1 Day,IT Operations,System downtime mitigation; Data migration activities,True,False,IT Operations,Software Update - Activity 1,,,Used for routine updates to ensure system stability.,True,True,system
+ABC00002,Database Migration - Activity 2,Database Migration,Applied during server migrations to improve performance.,Standard Change Approval,2 Days,Database Team,Infrastructure enhancement; Hardware lifecycle upgrades,True,False,IT Operations,Database Migration - Activity 2,,,Applied during server migrations to improve performance.,True,True,system
+ABC00003,Network Upgrade - Activity 3,Network Upgrade,Required for network upgrades and capacity expansions.,Emergency Approval,3 Days,Network Team,Security patch deployment; Regulatory compliance enforcement; Business continuity planning,True,False,IT Operations,Network Upgrade - Activity 3,,,Required for network upgrades and capacity expansions.,True,True,system
+ABC00004,Hardware Replacement - Activity 4,Hardware Replacement,Used when replacing or upgrading hardware components.,Auto-Approved,1 Week,Security Team,Hardware lifecycle upgrades; Business continuity planning,True,False,IT Operations,Hardware Replacement - Activity 4,,,Used when replacing or upgrading hardware components.,True,True,system
+ABC00005,Security Patch - Activity 5,Security Patch,Applied to fix security vulnerabilities quickly.,Executive Approval,2 Weeks,Compliance Team,Regulatory compliance enforcement; Data integrity validation,True,False,IT Operations,Security Patch - Activity 5,,,Applied to fix security vulnerabilities quickly.,True,True,system
+ABC00006,Compliance Update - Activity 6,Compliance Update,Used to meet regulatory and compliance requirements.,CAB Approval,1 Month,Application Development Team,Business continuity planning; Security patch deployment; Data integrity validation,True,False,IT Operations,Compliance Update - Activity 6,,,Used to meet regulatory and compliance requirements.,True,True,system
+ABC00007,Disaster Recovery Drill - Activity 7,Disaster Recovery Drill,Conducted to test disaster recovery plans. Approval Model: Standard Change Approval Lead Time: 2 Days,Standard Change Approval Lead Time: 2 Days,2 Days,Infrastructure Team,System downtime mitigation; Data migration activities; Business continuity planning,True,False,IT Operations,Disaster Recovery Drill - Activity 7,,,Conducted to test disaster recovery plans. Approval Model: Standard Change Approval Lead Time: 2 Days,True,True,system
+ABC00008,Access Control Change - Activity 8,Access Control Change,Used for managing user access and permissions.,Emergency Approval,1 Week,Risk Management,Security patch deployment; Hardware lifecycle upgrades,True,False,IT Operations,Access Control Change - Activity 8,,,Used for managing user access and permissions.,True,True,system
+ABC00009,Application Deployment - Activity 9,Application Deployment,Applied when deploying new software versions.,Auto-Approved,2 Weeks,Cloud Operations,System downtime mitigation; Business continuity planning,True,False,IT Operations,Application Deployment - Activity 9,,,Applied when deploying new software versions.,True,True,system
+ABC00010,Data Backup - Activity 10,Data Backup,Used for routine and emergency data backup tasks.,Executive Approval,3 Days,Customer Support,Data integrity validation; Security patch deployment,True,False,IT Operations,Data Backup - Activity 10,,,Used for routine and emergency data backup tasks.,True,True,system
+ABC00011,API Upgrade - Activity 11,API Upgrade,Used when upgrading APIs to align with new standards or interoperability requirements.,CAB Approval,1 Week,Integration Team,Infrastructure enhancement; Data migration activities,True,False,IT Operations,API Upgrade - Activity 11,,,Used when upgrading APIs to align with new standards or interoperability requirements.,True,True,system
+ABC00012,Cloud Integration - Activity 12,Cloud Integration,Applied when integrating on-premises systems with cloud infrastructure.,Standard Change Approval,2 Days,Cloud Operations,Data integrity validation; Business continuity planning,True,False,IT Operations,Cloud Integration - Activity 12,,,Applied when integrating on-premises systems with cloud infrastructure.,True,True,system
+ABC00013,Monitoring Setup - Activity 13,Monitoring Setup,Used to configure monitoring tools and dashboards for critical systems.,Emergency Approval,3 Days,IT Operations,System downtime mitigation; Security patch deployment,True,False,IT Operations,Monitoring Setup - Activity 13,,,Used to configure monitoring tools and dashboards for critical systems.,True,True,system
+ABC00014,User Training - Activity 14,User Training,Applied to educate users on new software features or security policies.,Auto-Approved,1 Week,Application Development Team,Business continuity planning; Regulatory compliance enforcement,True,False,IT Operations,User Training - Activity 14,,,Applied to educate users on new software features or security policies.,True,True,system
+ABC00015,Incident Management - Activity 15,Incident Management,Used to manage and resolve incidents affecting services.,Executive Approval,Immediate Owning Group: Security Team Applicable Scenarios:,Security Team Applicable Scenarios:,System downtime mitigation; Security patch deployment,True,False,IT Operations,Incident Management - Activity 15,,,Used to manage and resolve incidents affecting services.,True,True,system
+ABC00016,Configuration Change - Activity 16,Configuration Change,Applied to adjust system settings or configurations for optimization.,CAB Approval,1 Day,Infrastructure Team,Performance tuning; Data integrity validation,True,False,IT Operations,Configuration Change - Activity 16,,,Applied to adjust system settings or configurations for optimization.,True,True,system
+ABC00017,Capacity Planning - Activity 17,Capacity Planning,Used to forecast resource requirements and upgrade infrastructure accordingly.,Standard Change Approval,1 Week,Risk Management,System downtime mitigation; Business continuity planning,True,False,IT Operations,Capacity Planning - Activity 17,,,Used to forecast resource requirements and upgrade infrastructure accordingly.,True,True,system
+ABC00018,Vendor Onboarding - Activity 18,Vendor Onboarding,Applied when integrating new vendors or third-party services into the ecosystem.,Emergency Approval,2 Weeks,Compliance Team,Regulatory compliance enforcement; Security patch deployment,True,False,IT Operations,Vendor Onboarding - Activity 18,,,Applied when integrating new vendors or third-party services into the ecosystem.,True,True,system
+ABC00019,Patch Management - Activity 19,Patch Management,Used to deploy software patches across systems to address vulnerabilities or bugs.,Auto-Approved,1 Month,IT Operations,Security patch deployment; Data integrity validation,True,False,IT Operations,Patch Management - Activity 19,,,Used to deploy software patches across systems to address vulnerabilities or bugs.,True,True,system
+ABC00020,Performance Tuning - Activity 20,Performance Tuning,Applied to optimize system performance and resource utilization.,Executive Approval,3 Days,Application Development Team,Infrastructure enhancement; Data migration activities,True,False,IT Operations,Performance Tuning - Activity 20,,,Applied to optimize system performance and resource utilization.,True,True,system
+ABC00021,Cloud Security Audit - Activity 21,Security,Used to conduct audits of cloud infrastructure to ensure security policies are enforced.,CAB Approval,2 Weeks,Cloud Operations,Regulatory compliance enforcement; Incident preparedness; System downtime mitigation,True,False,IT Operations,Cloud Security Audit - Activity 21,,,Used to conduct audits of cloud infrastructure to ensure security policies are enforced.,True,True,system
+ABC00022,Network Firewall Expansion - Activity 22,Network,Applied to expand firewall capabilities and rules to cover new services or data flows.,Standard Change Approval,1 Week,Network Team,Security patch deployment; Data integrity validation; Infrastructure enhancement,True,False,IT Operations,Network Firewall Expansion - Activity 22,,,Applied to expand firewall capabilities and rules to cover new services or data flows.,True,True,system
+ABC00023,Software License Update - Activity 23,Software,Used to update software licenses to ensure compliance and access to new features.,Auto-Approved,3 Days,IT Operations,System downtime mitigation; Regulatory compliance enforcement,True,False,IT Operations,Software License Update - Activity 23,,,Used to update software licenses to ensure compliance and access to new features.,True,True,system
+ABC00024,Endpoint Security Installation - Activity 24,Security,Applied to install or upgrade security software on endpoints such as workstations and servers.,Emergency Approval,1 Week,Security Team,Security patch deployment; Incident management; Regulatory compliance enforcement,True,False,IT Operations,Endpoint Security Installation - Activity 24,,,Applied to install or upgrade security software on endpoints such as workstations and servers.,True,True,system
+ABC00025,Data Retention Policy Implementation - Activity 25,Compliance,Used to apply data retention policies to meet regulatory and organizational requirements.,CAB Approval,2 Weeks,Compliance Team,Regulatory compliance enforcement; Data integrity validation; Business continuity planning,True,False,IT Operations,Data Retention Policy Implementation - Activity 25,,,Used to apply data retention policies to meet regulatory and organizational requirements.,True,True,system
+ABC00026,Backup System Upgrade - Activity 26,Data,Applied when upgrading or replacing backup systems to enhance reliability and speed.,Standard Change Approval,1 Week,Infrastructure Team,Data integrity validation; System downtime mitigation; Disaster recovery drills,True,False,IT Operations,Backup System Upgrade - Activity 26,,,Applied when upgrading or replacing backup systems to enhance reliability and speed.,True,True,system
+ABC00027,Identity Access Review - Activity 27,Security,Used to review and update user identity access rights and permissions.,Auto-Approved,2 Days,Risk Management,Incident management; Regulatory compliance enforcement,True,False,IT Operations,Identity Access Review - Activity 27,,,Used to review and update user identity access rights and permissions.,True,True,system
+ABC00028,Cloud Migration - Activity 28,Cloud Integration,Applied when migrating workloads to cloud infrastructure to improve scalability.,CAB Approval,3 Weeks,Cloud Operations,Infrastructure enhancement; System downtime mitigation,True,False,IT Operations,Cloud Migration - Activity 28,,,Applied when migrating workloads to cloud infrastructure to improve scalability.,True,True,system
+ABC00029,Patch Testing Environment Setup - Activity 29,Software,Used to create a testing environment for applying patches before production deployment.,Standard Change Approval,1 Week,Application Development Team,Security patch deployment; Regulatory compliance enforcement,True,False,IT Operations,Patch Testing Environment Setup - Activity 29,,,Used to create a testing environment for applying patches before production deployment.,True,True,system
+ABC00030,Incident Escalation Protocol Update - Activity 30,Process,Applied to update protocols for escalating incidents to senior management or external stakeholders.,Emergency Approval,2 Days,Security Team,Incident management; Business continuity planning,True,False,IT Operations,Incident Escalation Protocol Update - Activity 30,,,Applied to update protocols for escalating incidents to senior management or external stakeholders.,True,True,system
+ABC00031,API Security Enhancement - Activity 31,Security,Used to enhance security settings and controls for APIs to protect against threats.,CAB Approval,1 Week,Integration Team,Infrastructure enhancement; Security patch deployment,True,False,IT Operations,API Security Enhancement - Activity 31,,,Used to enhance security settings and controls for APIs to protect against threats.,True,True,system
+ABC00032,Monitoring Alert Configuration - Activity 32,Monitoring,Applied to configure alert thresholds and notification mechanisms for critical system events.,Auto-Approved,3 Days,IT Operations,System downtime mitigation; Data integrity validation,True,False,IT Operations,Monitoring Alert Configuration - Activity 32,,,Applied to configure alert thresholds and notification mechanisms for critical system events.,True,True,system
+ABC00033,Cloud Cost Optimization - Activity 33,Cloud Integration,Used to implement cost-saving strategies for cloud resources and services.,Standard Change Approval,2 Weeks,Cloud Operations,Infrastructure enhancement; Data integrity validation,True,False,IT Operations,Cloud Cost Optimization - Activity 33,,,Used to implement cost-saving strategies for cloud resources and services.,True,True,system
+ABC00034,Training Portal Update - Activity 34,User Training,Applied to update training content and tools for employees across departments.,Auto-Approved,1 Week,Application Development Team,Business continuity planning; Incident management,True,False,IT Operations,Training Portal Update - Activity 34,,,Applied to update training content and tools for employees across departments.,True,True,system
+ABC00035,Vendor Security Review - Activity 35,Security,Used to assess security compliance and vulnerabilities in vendor systems before onboarding or renewal.,CAB Approval,3 Weeks,Compliance Team,Regulatory compliance enforcement; Incident management,True,False,IT Operations,Vendor Security Review - Activity 35,,,Used to assess security compliance and vulnerabilities in vendor systems before onboarding or renewal.,True,True,system
+ABC00036,Disaster Recovery Plan Review - Activity 36,Disaster Recovery,Applied to review and update disaster recovery plans to ensure effectiveness.,Standard Change Approval,2 Weeks,Risk Management,Business continuity planning; Incident management,True,False,IT Operations,Disaster Recovery Plan Review - Activity 36,,,Applied to review and update disaster recovery plans to ensure effectiveness.,True,True,system
+ABC00037,Data Encryption Policy Enforcement - Activity 37,Compliance,Used to implement encryption protocols across sensitive data repositories.,Emergency Approval,1 Week,Security Team,Data integrity validation; Regulatory compliance enforcement,True,False,IT Operations,Data Encryption Policy Enforcement - Activity 37,,,Used to implement encryption protocols across sensitive data repositories.,True,True,system
+ABC00038,Performance Benchmarking - Activity 38,Performance,Applied to benchmark system performance against industry standards to identify improvement areas.,CAB Approval,3 Weeks,IT Operations,Infrastructure enhancement; Business continuity planning,True,False,IT Operations,Performance Benchmarking - Activity 38,,,Applied to benchmark system performance against industry standards to identify improvement areas.,True,True,system
+ABC00039,API Compliance Verification - Activity 39,Compliance,Used to verify that APIs meet data protection and industry compliance standards.,Standard Change Approval,2 Weeks,Integration Team,Regulatory compliance enforcement; Security patch deployment,True,False,IT Operations,API Compliance Verification - Activity 39,,,Used to verify that APIs meet data protection and industry compliance standards.,True,True,system
+ABC00040,Legacy System Decommissioning - Activity 40,Hardware / Software,Applied to phase out legacy systems and transition to modern platforms securely and efficiently.,Auto-Approved,1 Month,Infrastructure Team,System downtime mitigation; Infrastructure enhancement; Business continuity planning,True,False,IT Operations,Legacy System Decommissioning - Activity 40,,,Applied to phase out legacy systems and transition to modern platforms securely and efficiently.,True,True,system
+ABC00041,Endpoint Configuration Review - Activity 41,Security,Used to review and update endpoint security configurations to prevent unauthorized access.,CAB Approval,2 Weeks,Security Team,Regulatory compliance enforcement; Incident management; System downtime mitigation,True,False,IT Operations,Endpoint Configuration Review - Activity 41,,,Used to review and update endpoint security configurations to prevent unauthorized access.,True,True,system
+ABC00042,Storage Capacity Expansion - Activity 42,Hardware,Applied when expanding storage infrastructure to meet growing data requirements.,Standard Change Approval,1 Week,Infrastructure Team,Infrastructure enhancement; Business continuity planning,True,False,IT Operations,Storage Capacity Expansion - Activity 42,,,Applied when expanding storage infrastructure to meet growing data requirements.,True,True,system
+ABC00043,Access Policy Automation - Activity 43,Security,"Used to automate access policies based on roles, permissions, and workflows.",Auto-Approved,3 Days,Risk Management,Incident management; Regulatory compliance enforcement,True,False,IT Operations,Access Policy Automation - Activity 43,,,"Used to automate access policies based on roles, permissions, and workflows.",True,True,system
+ABC00044,API Load Testing - Activity 44,Performance,Applied to test API performance under load conditions to ensure reliability and scalability.,CAB Approval,2 Weeks,Application Development Team,Infrastructure enhancement; System downtime mitigation,True,False,IT Operations,API Load Testing - Activity 44,,,Applied to test API performance under load conditions to ensure reliability and scalability.,True,True,system
+ABC00045,Business Continuity Plan Implementation - Activity 45,Disaster Recovery,Used to implement or update business continuity plans ensuring critical operations continue during disruptions.,Executive Approval,3 Weeks,Risk Management,Incident management; System downtime mitigation,True,False,IT Operations,Business Continuity Plan Implementation - Activity 45,,,Used to implement or update business continuity plans ensuring critical operations continue during disruptions.,True,True,system
+ABC00046,Data Masking Implementation - Activity 46,Compliance,Applied to mask sensitive data in non-production environments to prevent unauthorized access.,CAB Approval,1 Week,Compliance Team,Regulatory compliance enforcement; Data integrity validation,True,False,IT Operations,Data Masking Implementation - Activity 46,,,Applied to mask sensitive data in non-production environments to prevent unauthorized access.,True,True,system
+ABC00047,Cloud Access Policy Review - Activity 47,Cloud Integration,Used to review and update cloud access policies to align with security best practices.,Standard Change Approval,2 Weeks,Cloud Operations,Security patch deployment; Incident management,True,False,IT Operations,Cloud Access Policy Review - Activity 47,,,Used to review and update cloud access policies to align with security best practices.,True,True,system
+ABC00048,Legacy Software Patch - Activity 48,Software,Applied to patch vulnerabilities in legacy applications that remain in use.,Emergency Approval,1 Week,Application Development Team,Regulatory compliance enforcement; Security patch deployment,True,False,IT Operations,Legacy Software Patch - Activity 48,,,Applied to patch vulnerabilities in legacy applications that remain in use.,True,True,system
+ABC00049,Vendor Contract Review - Activity 49,Compliance,Used to review vendor contracts to ensure service level agreements and data protection requirements are met.,CAB Approval,3 Weeks,Compliance Team,Incident management; Regulatory compliance enforcement,True,False,IT Operations,Vendor Contract Review - Activity 49,,,Used to review vendor contracts to ensure service level agreements and data protection requirements are met.,True,True,system
+ABC00050,Infrastructure Patch Rollout - Activity 50,Hardware / Software,"Applied to roll out infrastructure patches across servers, storage, and network devices to ensure security and performance.",Standard Change Approval,2 Weeks,IT Operations,Security patch deployment; System downtime mitigation; Infrastructure enhancement,True,False,IT Operations,Infrastructure Patch Rollout - Activity 50,,,"Applied to roll out infrastructure patches across servers, storage, and network devices to ensure security and performance.",True,True,system
