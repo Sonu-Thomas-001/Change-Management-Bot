@@ -54,20 +54,25 @@ def find_similar_changes(description):
         if not keywords:
             keywords = words[:3]
             
-        # Take top 3 meaningful keywords
-        search_terms = keywords[:3]
+        # Sort keywords by length (descending) to prioritize specific terms like "firewall" over "new"
+        keywords.sort(key=len, reverse=True)
+        
+        # Take top 1 keyword (most specific)
+        search_terms = keywords[:1]
         
         if not search_terms:
             return None
             
-        keyword_query = "^".join([f"short_descriptionLIKE{k}" for k in search_terms])
+        # Search for the single best keyword
+        keyword_query = f"short_descriptionLIKE{search_terms[0]}"
         
-        query = f"active=false^close_code=successful^{keyword_query}"
+        # Relaxed query: Search for ANY change matching the keyword, prioritizing recent ones
+        query = f"{keyword_query}^ORDERBYDESCsys_updated_on"
         
         params = {
             "sysparm_query": query,
             "sysparm_limit": 1,
-            "sysparm_fields": "number,short_description,description,risk,impact,type,close_code",
+            "sysparm_fields": "number,short_description,description,risk,impact,type,close_code,priority,assignment_group",
             "sysparm_display_value": "true"
         }
         

@@ -153,6 +153,57 @@ def create_change_request(description, impact="Low", risk="Low"):
     except Exception as e:
         return jsonify({"answer": f"API Error: {str(e)}"})
 
+def create_change_request_raw(description, impact="Low", risk="Low"):
+    """
+    Creates a new change request and returns the raw data dict.
+    Returns: {"status": "success", "data": {...}} or {"status": "error", "message": "..."}
+    """
+    INSTANCE = Config.SERVICENOW_INSTANCE
+    USER = Config.SERVICENOW_USER
+    PASSWORD = Config.SERVICENOW_PASSWORD
+
+    if not all([INSTANCE, USER, PASSWORD]):
+        import random
+        new_id = f"CR-{random.randint(2000, 9999)}"
+        return {
+            "status": "success",
+            "data": {
+                "number": new_id,
+                "short_description": description,
+                "description": description,
+                "risk": risk,
+                "impact": impact,
+                "type": "Normal",
+                "priority": "4 - Low",
+                "assignment_group": "Service Desk"
+            }
+        }
+
+    url = f"{INSTANCE}/api/now/table/change_request"
+    headers = {"Content-Type": "application/json", "Accept": "application/json"}
+    payload = {
+        "short_description": description,
+        "impact": "3" if impact == "Low" else "1",
+        "risk": "3" if risk == "Low" else "1",
+        "state": "-5"
+    }
+    
+    # Add sysparm_fields to get more details back
+    params = {
+        "sysparm_fields": "number,short_description,description,risk,impact,type,priority,assignment_group,sys_id",
+        "sysparm_display_value": "true"
+    }
+
+    try:
+        response = requests.post(url, auth=HTTPBasicAuth(USER, PASSWORD), headers=headers, json=payload, params=params)
+        if response.status_code == 201:
+            data = response.json()
+            return {"status": "success", "data": data['result']}
+        else:
+            return {"status": "error", "message": f"Failed to create ticket. Status: {response.status_code}"}
+    except Exception as e:
+        return {"status": "error", "message": f"API Error: {str(e)}"}
+
 
 
 def get_pending_approvals():
