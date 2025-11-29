@@ -268,7 +268,7 @@ def recommend_template(query, templates, keywords=None):
     # Fetch recent changes for reference
     recent_changes = []
     if keywords:
-        recent_changes = get_recent_changes_by_keyword(keywords, limit=2)
+        recent_changes = get_recent_changes_by_keyword(keywords, limit=10)
     
     reference_section_str = ""
     if recent_changes:
@@ -314,7 +314,8 @@ def recommend_template(query, templates, keywords=None):
         "   - **Description**: [One line description]\n"
         "   - **Pre-filled Fields**: [List each field on a new line with a bullet point]\n"
         "   - **Few change references raised recently using this template**:\n"
-        "     > [Change Number] - [Short Description] [HTML Button to Clone]\n\n"
+        "     > [Change Number] - [Short Description] [HTML Button to Clone]\n"
+        "     (Select up to 2 relevant changes from the 'Recent Reference Changes' list above. If none are relevant, say 'No recent change references found'.)\n\n"
         "Output Format:\n"
     )
     
@@ -328,7 +329,7 @@ def recommend_template(query, templates, keywords=None):
         "- **Field Name**: Value\n"
         "- **Field Name**: Value\n\n"
         "**Few change references raised recently using this template**:\n"
-        "> **[Change Number]** - [Short Description] <button onclick=\"document.getElementById('user-input').value='Clone [Change Number]'; document.getElementById('chat-form').requestSubmit();\" style='background-color: #dc3545; color: white; border: none; padding: 2px 6px; border-radius: 3px; cursor: pointer; font-size: 10px; margin-left: 5px;'>Clone</button>\n"
+        "> **[Change Number]** - [Short Description] <button onclick=\"document.getElementById('user-input').value='Clone [Change Number]'; document.getElementById('chat-form').requestSubmit();\" style='background-color: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; margin-left: 5px;'>Clone</button>\n"
     )
     
     if not is_fallback:
