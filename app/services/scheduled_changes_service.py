@@ -163,6 +163,12 @@ def parse_time_period(query):
         end = datetime.datetime.combine(today, datetime.time(23, 59, 59))
         return (start, end, "Completed (Last 7 Days)", True)
     
+    elif "all" in query_lower:
+        # Default to a wide range: Last 1 year to Next 3 months
+        start = datetime.datetime.combine(today - datetime.timedelta(days=365), datetime.time(0, 0, 0))
+        end = datetime.datetime.combine(today + datetime.timedelta(days=90), datetime.time(23, 59, 59))
+        return (start, end, "All Changes (Past Year & Upcoming)", True)
+    
     else:
         # Default to upcoming week
         start = datetime.datetime.combine(today, datetime.time(0, 0, 0))
@@ -199,6 +205,15 @@ def export_scheduled_changes(query):
     start_date, end_date, period_name, is_past = parse_time_period(query)
     keywords = extract_keywords(query)
     
+    # Smart Date Range: If user searches for keywords but doesn't specify a date, widen the range.
+    if period_name == "Upcoming (Next 7 Days)" and keywords:
+        now = datetime.datetime.now()
+        today = now.date()
+        start_date = datetime.datetime.combine(today - datetime.timedelta(days=365), datetime.time(0, 0, 0))
+        end_date = datetime.datetime.combine(today + datetime.timedelta(days=90), datetime.time(23, 59, 59))
+        period_name = "All Changes (Keyword Search)"
+        is_past = True
+
     changes = []
     
     # Mock data if ServiceNow is not configured
@@ -277,6 +292,16 @@ def get_scheduled_changes(query):
     # Parse time period
     start_date, end_date, period_name, is_past = parse_time_period(query)
     keywords = extract_keywords(query)
+    
+    # Smart Date Range: If user searches for keywords (e.g., "firewall") but doesn't specify a date,
+    # default to a wide range (Past Year + Future) instead of just "Next 7 Days".
+    if period_name == "Upcoming (Next 7 Days)" and keywords:
+        now = datetime.datetime.now()
+        today = now.date()
+        start_date = datetime.datetime.combine(today - datetime.timedelta(days=365), datetime.time(0, 0, 0))
+        end_date = datetime.datetime.combine(today + datetime.timedelta(days=90), datetime.time(23, 59, 59))
+        period_name = "All Changes (Keyword Search)"
+        is_past = True # Enable past search logic
     
     # Mock data if ServiceNow is not configured
     if not all([INSTANCE, USER, PASSWORD]):
@@ -418,6 +443,8 @@ def _format_changes_table(changes, period_name, is_past, query_text, is_mock=Fal
     
     if "completed" in query_text.lower() or "closed" in query_text.lower():
         status_text = "Completed"
+    elif "all" in query_text.lower():
+        status_text = "All"
     elif is_past:
         status_text = "Past"
     else:
@@ -428,8 +455,7 @@ def _format_changes_table(changes, period_name, is_past, query_text, is_mock=Fal
     encoded_query = urllib.parse.quote(query_text)
     export_link = f"/export_changes?query={encoded_query}"
     
-    table_html = f'''
-    <div class="changes-container">
+    table_html = f'''<div class="changes-container">
         <div style="display: flex; justify-content: space-between; align_items: center; margin-bottom: 10px;">
             <h3 style="margin: 0;">📅 {status_text} Changes for {period_name}{mock_note}</h3>
         </div>
