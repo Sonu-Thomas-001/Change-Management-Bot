@@ -230,7 +230,7 @@ def ask_question():
         templates = find_relevant_templates(search_query)
         
         # 3. Use LLM to recommend the best one
-        recommendation = recommend_template(question, templates)
+        recommendation = recommend_template(question, templates, search_query)
         
         return jsonify(recommendation)
 

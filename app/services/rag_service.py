@@ -8,6 +8,7 @@ from langchain.chains import create_retrieval_chain, create_history_aware_retrie
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from app.config import Config
+from app.services.data_service import get_recent_changes_by_keyword
 
 # Global State
 rag_chain = None
@@ -32,7 +33,7 @@ def initialize_rag_chain():
         vectorstore = Chroma.from_documents(documents=docs, embedding=embeddings)
         retriever = vectorstore.as_retriever()
         
-        llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0.3, convert_system_message_to_human=True)
+        llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0.3)
 
         contextualize_q_system_prompt = (
             "Given a chat history and the latest user question "
@@ -254,7 +255,7 @@ def classify_intent(query):
         print(f"Intent Classification Error: {e}")
         return "GENERAL_QUERY"
 
-def recommend_template(query, templates):
+def recommend_template(query, templates, keywords=None):
     """
     Uses LLM to recommend the best template from a list of options.
     """
@@ -263,6 +264,17 @@ def recommend_template(query, templates):
         
     if not templates:
         return {"answer": "I couldn't find any relevant templates for your request."}
+
+    # Fetch recent changes for reference
+    recent_changes = []
+    if keywords:
+        recent_changes = get_recent_changes_by_keyword(keywords, limit=2)
+    
+    reference_section_str = ""
+    if recent_changes:
+        reference_section_str = "Found these recent changes using similar templates:\n"
+        for rc in recent_changes:
+            reference_section_str += f"- {rc['number']}: {rc['short_description']}\n"
 
     # Format templates for the prompt
     template_list_str = ""
@@ -282,7 +294,8 @@ def recommend_template(query, templates):
         "You are a Change Management Assistant. The user asked for a template.\n"
         "I have found the following templates in ServiceNow:\n\n"
         f"{template_list_str}\n"
-        f"User Query: \"{query}\"\n\n"
+        f"User Query: \"{query}\"\n"
+        f"Recent Reference Changes:\n{reference_section_str}\n\n"
         "Task:\n"
         "1. Analyze the user's intent and the available templates.\n"
     )
@@ -297,10 +310,11 @@ def recommend_template(query, templates):
 
     prompt += (
         "3. Format each template EXACTLY as follows:\n"
-        "   - **Template Name** (Header)\n"
+        "   - **Template Name** (Header) [HTML Button to View in ServiceNow]\n"
         "   - **Description**: [One line description]\n"
-        "   - **Pre-filled Fields**: [One line summary of key fields]\n"
-        "   - [HTML Button to View in ServiceNow]\n\n"
+        "   - **Pre-filled Fields**: [List each field on a new line with a bullet point]\n"
+        "   - **Few change references raised recently using this template**:\n"
+        "     > [Change Number] - [Short Description] [HTML Button to Clone]\n\n"
         "Output Format:\n"
     )
     
@@ -308,10 +322,13 @@ def recommend_template(query, templates):
         prompt += "I couldn't find any specific matching templates for your request, so I suggest using the generic template below:\n\n"
 
     prompt += (
-        "### 1. [Template Name]\n\n"
+        "### 1. [Template Name] <a href='[Link]' target='_blank' style='background-color: #293e40; color: white; padding: 5px 10px; text-decoration: none; border-radius: 5px; font-size: 12px; vertical-align: middle; margin-left: 10px;'>🔗 View in ServiceNow</a>\n\n"
         "**Description**: [Description]\n\n"
-        "**Pre-filled Fields**: [Key fields]\n\n"
-        "<a href='[Link]' target='_blank' style='background-color: #293e40; color: white; padding: 5px 10px; text-decoration: none; border-radius: 5px; font-size: 12px;'>🔗 View in ServiceNow</a>\n\n"
+        "**Pre-filled Fields**:\n"
+        "- **Field Name**: Value\n"
+        "- **Field Name**: Value\n\n"
+        "**Few change references raised recently using this template**:\n"
+        "> **[Change Number]** - [Short Description] <button onclick=\"document.getElementById('user-input').value='Clone [Change Number]'; document.getElementById('chat-form').requestSubmit();\" style='background-color: #dc3545; color: white; border: none; padding: 2px 6px; border-radius: 3px; cursor: pointer; font-size: 10px; margin-left: 5px;'>Clone</button>\n"
     )
     
     if not is_fallback:

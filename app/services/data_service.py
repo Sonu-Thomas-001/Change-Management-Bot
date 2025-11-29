@@ -535,3 +535,43 @@ def get_pending_tasks():
     except Exception as e:
         print(f"Error fetching tasks: {e}")
         return jsonify({"answer": f"❌ Error connecting to ServiceNow: {str(e)}"})
+
+def get_recent_changes_by_keyword(keyword, limit=3):
+    """
+    Fetch recent changes that match a specific keyword in their description.
+    """
+    INSTANCE = Config.SERVICENOW_INSTANCE
+    USER = Config.SERVICENOW_USER
+    PASSWORD = Config.SERVICENOW_PASSWORD
+
+    if not all([INSTANCE, USER, PASSWORD]):
+        # Mock Data
+        import random
+        mock_changes = []
+        for i in range(limit):
+            num = f"CHG{random.randint(100000, 999999)}"
+            mock_changes.append({
+                "number": num,
+                "short_description": f"Previous {keyword} implementation for {random.choice(['Production', 'UAT', 'Dev'])}",
+                "state": "Closed"
+            })
+        return mock_changes
+
+    url = f"{INSTANCE}/api/now/table/change_request"
+    params = {
+        "sysparm_query": f"short_descriptionLIKE{keyword}^state=3^ORstate=4", # Closed or Implemented
+        "sysparm_fields": "number,short_description,state",
+        "sysparm_limit": limit,
+        "sysparm_order_by_desc": "sys_updated_on"
+    }
+
+    try:
+        response = requests.get(url, auth=HTTPBasicAuth(USER, PASSWORD), params=params, timeout=10)
+        if response.status_code == 200:
+            return response.json().get('result', [])
+        else:
+            print(f"Error fetching recent changes: {response.status_code}")
+            return []
+    except Exception as e:
+        print(f"Error fetching recent changes: {e}")
+        return []
