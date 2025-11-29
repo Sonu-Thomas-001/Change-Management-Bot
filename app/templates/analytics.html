@@ -403,22 +403,22 @@
         <div class="kpi-grid">
             <div class="kpi-card kpi-blue">
                 <div class="kpi-label">Total Queries</div>
-                <div class="kpi-value">{{ total }}</div>
+                <div class="kpi-value"><span class="counter" data-target="{{ total }}">0</span></div>
                 <div class="kpi-sub">All time</div>
             </div>
             <div class="kpi-card kpi-green">
                 <div class="kpi-label">Success Rate</div>
-                <div class="kpi-value">{{ success_rate }}%</div>
+                <div class="kpi-value"><span class="counter" data-target="{{ success_rate }}">0</span>%</div>
                 <div class="kpi-sub">Answered</div>
             </div>
             <div class="kpi-card kpi-yellow">
                 <div class="kpi-label">Satisfaction</div>
-                <div class="kpi-value">{{ satisfaction_score }}%</div>
+                <div class="kpi-value"><span class="counter" data-target="{{ satisfaction_score }}">0</span>%</div>
                 <div class="kpi-sub">Positive Feedback</div>
             </div>
             <div class="kpi-card kpi-red">
                 <div class="kpi-label">Knowledge Gaps</div>
-                <div class="kpi-value">{{ unanswered_count }}</div>
+                <div class="kpi-value"><span class="counter" data-target="{{ unanswered_count }}">0</span></div>
                 <div class="kpi-sub">Unanswered</div>
             </div>
         </div>
@@ -658,6 +658,39 @@
                 },
                 cutout: '75%' // Thinner ring
             }
+        });
+
+        // --- 3. KPI Counter Animation ---
+        const counters = document.querySelectorAll('.counter');
+        const duration = 2000; // 2 seconds
+
+        counters.forEach(counter => {
+            const target = parseFloat(counter.getAttribute('data-target'));
+            const startTime = performance.now();
+
+            const updateCount = (currentTime) => {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+
+                // EaseOutExpo
+                const ease = (x) => x === 1 ? 1 : 1 - Math.pow(2, -10 * x);
+
+                const current = target * ease(progress);
+
+                if (Number.isInteger(target)) {
+                    counter.innerText = Math.floor(current);
+                } else {
+                    counter.innerText = current.toFixed(1);
+                }
+
+                if (progress < 1) {
+                    requestAnimationFrame(updateCount);
+                } else {
+                    counter.innerText = Number.isInteger(target) ? target : target.toFixed(1);
+                }
+            };
+
+            requestAnimationFrame(updateCount);
         });
     </script>
 </body>
