@@ -171,35 +171,13 @@ def ask_question():
                                       f"<div style='margin-top: 10px;'><button onclick=\"document.getElementById('user-input').value='Clone {suggestion['number']} for 2025-12-01 to 2025-12-02 assigned to {suggestion.get('assigned_to', 'Me')}'; document.getElementById('user-input').focus();\" style='background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2); transition: all 0.2s;'>Clone Change</button></div>"})
 
         # If no similar changes found, create a new one and show "Red Card"
-        from app.services.data_service import create_change_request_raw
-        result = create_change_request_raw(question, "Low", "Low")
-        
-        if result['status'] == 'success':
-            from app.config import Config
-            INSTANCE = Config.SERVICENOW_INSTANCE
-            new_change = result['data']
-            view_link = f"{INSTANCE}/nav_to.do?uri=change_request.do?sysparm_query=number={new_change['number']}"
-            
-            return jsonify({"answer": f"Unable to find any suggestion for change. Created a new Change Request:\n\n"
-                                      f"<div style='background: #fef2f2; border-left: 4px solid #ef4444; padding: 12px; border-radius: 4px; margin: 10px 0; box-shadow: 0 1px 2px rgba(0,0,0,0.05); min-width: 600px;'>"
-                                      f"  <div style='display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;'>"
-                                      f"    <div style='font-weight: 700; color: #b91c1c; font-size: 14px;'>{new_change['number']}</div>"
-                                      f"    <a href='{view_link}' target='_blank' style='background-color: #293e40; color: white; padding: 6px 12px; text-decoration: none; border-radius: 6px; font-size: 12px; font-weight: 500; white-space: nowrap;'>View Change</a>"
-                                      f"  </div>"
-                                      f"  <div>"
-                                      f"    <div style='color: #374151; font-size: 13px; margin-top: 4px;'><strong>Short Description:</strong> {new_change['short_description']}</div>"
-                                      f"    <div style='color: #6b7280; font-size: 12px; margin-top: 4px;'><strong style='color: #374151;'>Description:</strong> {new_change.get('description', '')[:100]}...</div>"
-                                      f"    <div style='display: flex; flex-wrap: wrap; margin-top: 8px; font-size: 11px; color: #4b5563;'>"
-                                      f"      <div style='width: 50%; margin-bottom: 4px;'><span style='font-weight: 600;'>Type:</span> {new_change.get('type', 'N/A')}</div>"
-                                      f"      <div style='width: 50%; margin-bottom: 4px;'><span style='font-weight: 600;'>Priority:</span> {new_change.get('priority', 'N/A')}</div>"
-                                      f"      <div style='width: 50%; margin-bottom: 4px;'><span style='font-weight: 600;'>Risk:</span> {new_change.get('risk', 'N/A')}</div>"
-                                      f"      <div style='width: 50%; margin-bottom: 4px;'><span style='font-weight: 600;'>Impact:</span> {new_change.get('impact', 'N/A')}</div>"
-                                      f"      <div style='width: 100%; margin-bottom: 4px;'><span style='font-weight: 600;'>Group:</span> {new_change.get('assignment_group', {}).get('display_value') if isinstance(new_change.get('assignment_group'), dict) else new_change.get('assignment_group', 'N/A')}</div>"
-                                      f"    </div>"
-                                      f"  </div>"
-                                      f"</div>"})
-        else:
-            return jsonify({"answer": f"Failed to create change request: {result.get('message')}"})
+        # If no similar changes found, just show the apology message (Red Card)
+        return jsonify({"answer": f"<div style='font-size: 14px; font-weight: 600; color: #dc2626; margin-bottom: 5px;'>⚠️ unable to find the suggstion change</div>\n\n"
+                                  f"<div style='background: #fef2f2; border-left: 4px solid #ef4444; padding: 12px; border-radius: 4px; margin: 10px 0; box-shadow: 0 1px 2px rgba(0,0,0,0.05); min-width: 600px;'>"
+                                  f"  <div style='background-color: #fee2e2; color: #991b1b; padding: 8px; border-radius: 4px; font-size: 12px; border: 1px solid #fca5a5;'>"
+                                  f"    <strong>Apologies:</strong> We could not find a matching change suggestion."
+                                  f"  </div>"
+                                  f"</div>"})
 
     # 3. Pending Approvals Intent
     if intent == "PENDING_APPROVALS":

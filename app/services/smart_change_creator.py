@@ -57,33 +57,36 @@ def find_similar_changes(description):
         # Sort keywords by length (descending) to prioritize specific terms like "firewall" over "new"
         keywords.sort(key=len, reverse=True)
         
-        # Take top 1 keyword (most specific)
-        search_terms = keywords[:1]
+        # Take top 3 keywords (most specific)
+        search_terms = keywords[:3]
         
         if not search_terms:
             return None
             
-        # Search for the single best keyword
-        keyword_query = f"short_descriptionLIKE{search_terms[0]}"
+        # Iterate through keywords until we find a match
+        for term in search_terms:
+            # Search for the current keyword
+            keyword_query = f"short_descriptionLIKE{term}"
+            
+            # Relaxed query: Search for ANY change matching the keyword, prioritizing recent ones
+            query = f"{keyword_query}^ORDERBYDESCsys_updated_on"
+            
+            params = {
+                "sysparm_query": query,
+                "sysparm_limit": 1,
+                "sysparm_fields": "number,short_description,description,risk,impact,type,close_code,priority,assignment_group",
+                "sysparm_display_value": "true"
+            }
+            
+            headers = {"Accept": "application/json"}
+            response = requests.get(url, auth=HTTPBasicAuth(USER, PASSWORD), params=params, headers=headers)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'result' in data and len(data['result']) > 0:
+                    return data['result'][0]
         
-        # Relaxed query: Search for ANY change matching the keyword, prioritizing recent ones
-        query = f"{keyword_query}^ORDERBYDESCsys_updated_on"
-        
-        params = {
-            "sysparm_query": query,
-            "sysparm_limit": 1,
-            "sysparm_fields": "number,short_description,description,risk,impact,type,close_code,priority,assignment_group",
-            "sysparm_display_value": "true"
-        }
-        
-        headers = {"Accept": "application/json"}
-        response = requests.get(url, auth=HTTPBasicAuth(USER, PASSWORD), params=params, headers=headers)
-        
-        if response.status_code == 200:
-            data = response.json()
-            if 'result' in data and len(data['result']) > 0:
-                return data['result'][0]
-                
+        # If no matches found after trying all keywords
         return None
 
     except Exception as e:
