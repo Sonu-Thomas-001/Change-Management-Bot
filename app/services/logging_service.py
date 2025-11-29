@@ -17,12 +17,25 @@ def log_interaction(question, answer):
     status = "Answered"
     
     # Check if answer contains any low confidence triggers
+    print(f"DEBUG: Logging Interaction - Answer: {answer[:50]}...")
     if any(trigger in answer.lower() for trigger in low_confidence_triggers):
         status = "Unanswered"
+        print(f"DEBUG: Status set to Unanswered (Trigger match)")
+    else:
+        print(f"DEBUG: Status set to Answered (No trigger match)")
     
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     file_exists = os.path.isfile(Config.LOG_FILE)
     try:
+        # Ensure file ends with newline before appending
+        if file_exists:
+            with open(Config.LOG_FILE, mode='rb+') as f:
+                f.seek(0, 2) # Go to end
+                if f.tell() > 0:
+                    f.seek(-1, 1)
+                    if f.read(1) != b'\n':
+                        f.write(b'\n')
+
         with open(Config.LOG_FILE, mode='a', newline='', encoding='utf-8') as file:
             writer = csv.writer(file)
             if not file_exists:
