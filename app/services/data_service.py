@@ -301,11 +301,29 @@ def get_pending_approvals():
     
     # Real ServiceNow API call
     try:
+        # Resolve User Sys ID first
+        # Per user request: Always fetch pending approvals for "david.loo"
+        target_user = "david.loo"
+        
+        user_sys_id = None
+        user_url = f"{INSTANCE}/api/now/table/sys_user"
+        user_params = {"sysparm_query": f"user_name={target_user}", "sysparm_fields": "sys_id", "sysparm_limit": 1}
+        u_resp = requests.get(user_url, auth=HTTPBasicAuth(USER, PASSWORD), params=user_params)
+        if u_resp.status_code == 200:
+            results = u_resp.json().get('result', [])
+            if results:
+                user_sys_id = results[0]['sys_id']
+        
+        if not user_sys_id:
+             # Fallback to username if sys_id lookup fails
+             print(f"⚠️ Could not resolve sys_id for {target_user}, using username.")
+             user_sys_id = target_user
+
         url = f"{INSTANCE}/api/now/table/sysapproval_approver"
         params = {
-            "sysparm_query": f"approver={USER}^state=requested",
+            "sysparm_query": f"approver={user_sys_id}^state=requested",
             "sysparm_display_value": "true",
-            "sysparm_fields": "number,sysapproval,short_description,state,sys_created_on",
+            "sysparm_fields": "sysapproval.number,sysapproval.short_description,state,sys_created_on,sysapproval.priority,sysapproval.risk,sysapproval.start_date",
             "sysparm_limit": 20
         }
         
@@ -328,8 +346,10 @@ def get_pending_approvals():
                             <tr>
                                 <th>Ticket</th>
                                 <th>Description</th>
+                                <th>Priority</th>
+                                <th>Risk</th>
+                                <th>Start Date</th>
                                 <th>State</th>
-                                <th>Created</th>
                                 <th>Action</th>
                             </tr>
                         </thead>
@@ -337,18 +357,22 @@ def get_pending_approvals():
             '''.replace('{count}', str(len(approvals)))
             
             for approval in approvals:
-                number = approval.get('number', 'N/A')
-                desc = approval.get('short_description', 'No description')
+                number = approval.get('sysapproval.number', 'N/A')
+                desc = approval.get('sysapproval.short_description', 'No description')
+                priority = approval.get('sysapproval.priority', 'N/A')
+                risk = approval.get('sysapproval.risk', 'N/A')
+                start_date = approval.get('sysapproval.start_date', 'N/A')
                 state = approval.get('state', 'N/A')
-                created = approval.get('sys_created_on', 'N/A')
                 
                 table_html += f'''
                             <tr>
                                 <td><strong>{number}</strong></td>
                                 <td>{desc}</td>
+                                <td>{priority}</td>
+                                <td>{risk}</td>
+                                <td>{start_date}</td>
                                 <td><span class="state-badge">{state}</span></td>
-                                <td>{created}</td>
-                                <td><button class="view-btn" onclick="window.open('{INSTANCE}/sysapproval_approver.do?sysparm_query=number={number}', '_blank')">View</button></td>
+                                <td><button class="view-btn" onclick="window.open('{INSTANCE}/sysapproval_approver.do?sysparm_query=sysapproval.number={number}', '_blank')">View</button></td>
                             </tr>
                 '''
             
@@ -494,9 +518,23 @@ def get_pending_tasks():
     
     # Real ServiceNow API call
     try:
+        # Resolve User Sys ID first (if not already done, but we can't share scope easily here without refactoring)
+        # Ideally we should have a helper, but for now duplicating the lookup is safer than refactoring the whole file
+        user_sys_id = None
+        user_url = f"{INSTANCE}/api/now/table/sys_user"
+        user_params = {"sysparm_query": f"user_name={USER}", "sysparm_fields": "sys_id", "sysparm_limit": 1}
+        u_resp = requests.get(user_url, auth=HTTPBasicAuth(USER, PASSWORD), params=user_params)
+        if u_resp.status_code == 200:
+            results = u_resp.json().get('result', [])
+            if results:
+                user_sys_id = results[0]['sys_id']
+        
+        if not user_sys_id:
+             user_sys_id = USER
+
         url = f"{INSTANCE}/api/now/table/sc_task"
         params = {
-            "sysparm_query": f"assigned_to={USER}^active=true^state!=3^state!=4^state!=7",
+            "sysparm_query": f"assigned_to={user_sys_id}^active=true^state!=3^state!=4^state!=7",
             "sysparm_display_value": "true",
             "sysparm_fields": "number,short_description,state,priority,opened_at,due_date",
             "sysparm_limit": 20,
