@@ -390,9 +390,13 @@ def recommend_template(query, templates, keywords=None):
     template_list_str = ""
     INSTANCE = Config.SERVICENOW_INSTANCE
     
+    import urllib.parse
     for i, t in enumerate(templates):
         sys_id = t.get('sys_id', '')
-        link = f"{INSTANCE}/nav_to.do?uri=sys_template.do?sys_id={sys_id}"
+        # Encode the URI parameter to handle special characters and query strings correctly
+        target_uri = f"sys_template.do?sys_id={sys_id}"
+        encoded_uri = urllib.parse.quote(target_uri)
+        link = f"{INSTANCE}/nav_to.do?uri={encoded_uri}"
         template_list_str += f"{i+1}. Name: {t.get('name')}\n   Description: {t.get('short_description')}\n   Fields: {t.get('template')}\n   Link: {link}\n\n"
 
     # Check if we are in fallback mode (Only generic template found)
