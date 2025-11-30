@@ -331,8 +331,17 @@ def get_scheduled_changes(query):
         
         # Add keyword search if keywords are present
         if keywords:
-            search_term = " ".join(keywords)
-            sysparm_query += f"^123TEXTQUERY321={search_term}"
+            # Use LIKE query on short_description and description for more specific results
+            # 123TEXTQUERY321 can be too broad or unreliable depending on instance config
+            keyword_conditions = []
+            for keyword in keywords:
+                # Check both short_description AND description for the keyword
+                keyword_conditions.append(f"short_descriptionLIKE{keyword}^ORdescriptionLIKE{keyword}")
+            
+            # Combine all keyword conditions with AND (must match all keywords)
+            # But for a single keyword, it's just one condition
+            search_query = "^".join(keyword_conditions)
+            sysparm_query += f"^{search_query}"
             
         params = {
             "sysparm_query": sysparm_query,
