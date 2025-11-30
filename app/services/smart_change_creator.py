@@ -1,5 +1,5 @@
-import requests
-from requests.auth import HTTPBasicAuth
+import csv
+import os
 from app.config import Config
 from datetime import datetime
 
@@ -181,10 +181,52 @@ def create_change_request(template_ticket, start_date, end_date, assigned_to="Un
         print(f"Smart Change Creation Error: {e}")
         return None
 
+def search_templates_from_csv(keyword):
+    """
+    Searches for templates in the local CSV file.
+    """
+    csv_path = os.path.join(os.getcwd(), 'docs', 'change_templates.csv')
+    if not os.path.exists(csv_path):
+        print(f"CSV file not found at {csv_path}")
+        return []
+
+    matches = []
+    try:
+        with open(csv_path, mode='r', encoding='utf-8-sig') as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                # Search in Name, Application, Short_description
+                search_text = f"{row.get('Name', '')} {row.get('Application', '')} {row.get('Short_description', '')}".lower()
+                if keyword.lower() in search_text:
+                    # Map CSV fields to expected dictionary format
+                    matches.append({
+                        "sys_id": row.get('template_number'), # Use template_number as ID
+                        "name": row.get('Name'),
+                        "short_description": row.get('Short_description'),
+                        "template": f"application={row.get('Application')}^implementation_plan={row.get('Implementation_plan')}", # Construct a mock template string
+                        "source": "csv" # Flag to indicate source
+                    })
+    except Exception as e:
+        print(f"CSV Search Error: {e}")
+    
+    return matches
+
 def find_relevant_templates(query):
     """
-    Searches for relevant templates in the sys_template table based on the query.
+    Searches for relevant templates based on the user's natural language query.
+    Uses RAG (Semantic Search) to find matches in the CSV.
     """
+    # 1. Search using RAG (Semantic Search)
+    from app.services.rag_service import search_templates_with_rag
+    
+    # Pass the full natural language query to RAG
+    rag_results = search_templates_with_rag(query)
+        
+    if rag_results:
+        print(f"Found {len(rag_results)} templates via RAG.")
+        return rag_results[:10]
+
+    # 2. Fallback to ServiceNow Search (Existing Logic)
     INSTANCE = Config.SERVICENOW_INSTANCE
     USER = Config.SERVICENOW_USER
     PASSWORD = Config.SERVICENOW_PASSWORD

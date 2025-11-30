@@ -1,7 +1,7 @@
 import os
 from flask import jsonify
 from langchain_google_genai import GoogleGenerativeAIEmbeddings, ChatGoogleGenerativeAI
-from langchain_community.document_loaders import PyPDFDirectoryLoader
+from langchain_community.document_loaders import PyPDFDirectoryLoader, CSVLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import Chroma
 from langchain.chains import create_retrieval_chain, create_history_aware_retriever
@@ -14,11 +14,14 @@ from app.services.data_service import get_recent_changes_by_keyword
 rag_chain = None
 llm = None
 retriever = None
+template_retriever = None
 
 def initialize_rag_chain():
-    global rag_chain, llm, retriever
+    global rag_chain, llm, retriever, template_retriever
     try:
         print("Initializing RAG Chain...")
+        
+        # --- 1. Load PDFs for Knowledge Base ---
         loader = PyPDFDirectoryLoader("docs")
         documents = loader.load()
         if not documents:
@@ -30,8 +33,27 @@ def initialize_rag_chain():
         print(f"Processed {len(docs)} document chunks.")
 
         embeddings = GoogleGenerativeAIEmbeddings(model="models/text-embedding-004")
-        vectorstore = Chroma.from_documents(documents=docs, embedding=embeddings)
+        vectorstore = Chroma.from_documents(documents=docs, embedding=embeddings, collection_name="kb_collection")
         retriever = vectorstore.as_retriever()
+        
+        # --- 2. Load CSV for Templates ---
+        csv_path = os.path.join("docs", "change_templates.csv")
+        if os.path.exists(csv_path):
+            print("Loading Template CSV...")
+            csv_loader = CSVLoader(file_path=csv_path, encoding="utf-8-sig")
+            template_docs = csv_loader.load()
+            
+            # Create a separate vector store for templates
+            template_vectorstore = Chroma.from_documents(
+                documents=template_docs, 
+                embedding=embeddings,
+                collection_name="template_collection"
+            )
+            # Increase k to retrieve more potential matches (user requested "all relevant")
+            template_retriever = template_vectorstore.as_retriever(search_kwargs={"k": 15})
+            print(f"Processed {len(template_docs)} template rows.")
+        else:
+            print("Warning: Template CSV not found.")
         
         llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0.3)
 
@@ -143,6 +165,52 @@ def answer_question(question, chat_history, user_role="User"):
         print(f"RAG Invoke Error: {e}")
         return {"answer": "I encountered an error processing your request."}
 
+def search_templates_with_rag(query):
+    """
+    Searches for templates using RAG (Semantic Search).
+    """
+    if not template_retriever:
+        print("Template RAG not initialized.")
+        return []
+        
+    try:
+        docs = template_retriever.invoke(query)
+        results = []
+        for d in docs:
+            # CSVLoader puts the row content in page_content. 
+            # We need to parse it or rely on the fact that it's key: value format.
+            # However, for structured data, it's better to extract fields if possible.
+            # But CSVLoader combines all fields into text.
+            
+            # Let's try to parse the content back to dict if needed, 
+            # or just extract what we need from the text if it's simple.
+            # Actually, the 'metadata' usually contains 'row' index, but not the fields.
+            # The page_content looks like:
+            # template_number: ABC...
+            # Name: ...
+            
+            content = d.page_content
+            
+            # Simple parsing of the content string to a dict
+            row_data = {}
+            for line in content.split('\n'):
+                if ': ' in line:
+                    key, val = line.split(': ', 1)
+                    row_data[key.strip()] = val.strip()
+            
+            results.append({
+                "sys_id": row_data.get('template_number', 'Unknown'),
+                "name": row_data.get('Name', 'Unknown'),
+                "short_description": row_data.get('Short_description', ''),
+                "template": f"application={row_data.get('Application', '')}^implementation_plan={row_data.get('Implementation_plan', '')}",
+                "source": "rag"
+            })
+            
+        return results
+    except Exception as e:
+        print(f"Template RAG Search Error: {e}")
+        return []
+
 def analyze_risk_score(plan_text):
     if not llm or not retriever:
         return jsonify({"answer": "Risk analysis unavailable. System not initialized."})
@@ -200,12 +268,53 @@ def translate_text(text, target_language):
         print(f"Translation Error: {e}")
         return text # Fallback to original text on error
 
-def classify_intent(query):
+def contextualize_query(query, chat_history):
+    """
+    Reformulates the user's query based on chat history to make it standalone.
+    Example: 
+    History: "I need a template for DB" -> "Which DB?"
+    Query: "Oracle"
+    Result: "I need a template for Oracle DB"
+    """
+    if not llm or not chat_history:
+        return query
+        
+    system_prompt = (
+        "Given a chat history and the latest user response, "
+        "reformulate the response into a standalone question or statement that includes the necessary context. "
+        "If the user is answering a clarifying question, combine it with the previous context.\n"
+        "Example:\n"
+        "History: User='Template for DB', AI='Which DB?'\n"
+        "Input: 'Oracle'\n"
+        "Output: 'Template for Oracle DB'\n\n"
+        "Output ONLY the reformulated question. Do NOT answer the question. Do NOT provide a list of templates."
+    )
+    
+    prompt = ChatPromptTemplate.from_messages([
+        ("system", system_prompt),
+        MessagesPlaceholder("chat_history"),
+        ("human", "{input}"),
+    ])
+    
+    try:
+        chain = prompt | llm
+        response = chain.invoke({"input": query, "chat_history": chat_history})
+        return response.content
+    except Exception as e:
+        print(f"Contextualization Error: {e}")
+        return query
+
+def classify_intent(query, chat_history=None):
     """
     Classifies the user's query into a specific intent using the LLM.
     """
     if not llm:
         return "GENERAL_QUERY" # Fallback
+        
+    # Contextualize if history exists
+    if chat_history:
+        query = contextualize_query(query, chat_history)
+        print(f"DEBUG: Contextualized Query for Intent: {query}")
         
     system_prompt = (
         "You are an Intent Classifier for a Change Management Chatbot. "
@@ -298,18 +407,24 @@ def recommend_template(query, templates, keywords=None):
         f"Recent Reference Changes:\n{reference_section_str}\n\n"
         "Task:\n"
         "1. Analyze the user's intent and the available templates.\n"
+        "2. **CLARIFICATION CHECK**: \n"
+        "   - Analyze the found templates. Do they cover multiple **distinct** options (e.g., different Databases, OS versions, Applications, or specific Activities)?\n"
+        "   - Analyze the User Query. Did the user specify the exact type/option they need?\n"
+        "   - **RULE**: IF there are multiple distinct options AND the user's query is broad/ambiguous -> **YOU MUST ASK A CLARIFYING QUESTION** to narrow it down.\n"
+        "   - **Goal**: Get the specific details (e.g., 'Which database?', 'Which OS?', 'What specific activity?') to provide the most accurate template.\n"
+        "   - **Output**: Return ONLY the clarifying question.\n"
+        "3. If no clarification is needed (or user already specified), list ALL relevant templates found (up to 10).\n"
     )
 
     if is_fallback:
         prompt += (
-            "2. **IMPORTANT**: Since only the generic template (ABC00000) was found, you MUST start your response by explicitly stating:\n"
+            "4. **IMPORTANT**: Since only the generic template (ABC00000) was found, you MUST start your response by explicitly stating:\n"
             "   \"I couldn't find any specific matching templates for your request, so I suggest using the generic template below.\"\n"
         )
     else:
-        prompt += "2. List ALL relevant templates found (up to 3).\n"
+        prompt += "4. If listing templates, format them EXACTLY as follows:\n"
 
     prompt += (
-        "3. Format each template EXACTLY as follows:\n"
         "   - **Template Name** (Header) [HTML Button to View in ServiceNow]\n"
         "   - **Description**: [One line description]\n"
         "   - **Pre-filled Fields**: [List each field on a new line with a bullet point]\n"

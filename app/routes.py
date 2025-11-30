@@ -76,8 +76,19 @@ def ask_question():
 
     lower_q = question.lower()
 
+    # Reconstruct chat history for RAG
+    chat_history = []
+    for msg in chat_history_json:
+        if msg.get('type') == 'human':
+            chat_history.append(HumanMessage(content=msg.get('content')))
+        elif msg.get('type') == 'ai':
+            chat_history.append(AIMessage(content=msg.get('content')))
+        elif msg.get('type') == 'chart':
+            chart_text = msg.get('content', {}).get('text', 'Visual Chart Displayed')
+            chat_history.append(AIMessage(content=f"[{chart_text}]"))
+
     # --- LLM-BASED ROUTING ---
-    intent = rag_service.classify_intent(question)
+    intent = rag_service.classify_intent(question, chat_history)
     print(f"DEBUG: Detected Intent: {intent}")
 
     # --- KEYWORD OVERRIDES ---
@@ -252,28 +263,22 @@ def ask_question():
     # 10. Template Lookup Intent
     if intent == "TEMPLATE_LOOKUP":
         from app.services.smart_change_creator import find_relevant_templates
-        from app.services.rag_service import recommend_template, extract_template_keywords
+        from app.services.rag_service import recommend_template, contextualize_query
         
-        # 1. Extract Keywords (Semantic Search)
-        search_query = extract_template_keywords(question)
+        # 0. Contextualize Query (Handle follow-ups like "Oracle")
+        contextualized_q = contextualize_query(question, chat_history)
+        # print(f"DEBUG: Contextualized Template Query: {contextualized_q}")
         
-        # 2. Search ServiceNow for templates
-        templates = find_relevant_templates(search_query)
+        # 1. Search ServiceNow/CSV for templates using the full question (Semantic Search)
+        # We pass the full question to let RAG analyze the intent/activity
+        templates = find_relevant_templates(contextualized_q)
         
-        # 3. Use LLM to recommend the best one
-        recommendation = recommend_template(question, templates, search_query)
+        # 2. Use LLM to recommend the best one
+        recommendation = recommend_template(contextualized_q, templates, keywords=contextualized_q)
         
         return jsonify(recommendation)
 
-    chat_history = []
-    for msg in chat_history_json:
-        if msg.get('type') == 'human':
-            chat_history.append(HumanMessage(content=msg.get('content')))
-        elif msg.get('type') == 'ai':
-            chat_history.append(AIMessage(content=msg.get('content')))
-        elif msg.get('type') == 'chart':
-            chart_text = msg.get('content', {}).get('text', 'Visual Chart Displayed')
-            chat_history.append(AIMessage(content=f"[{chart_text}]"))
+
 
     try:
         # Pass user role to the RAG service for personality adaptation
