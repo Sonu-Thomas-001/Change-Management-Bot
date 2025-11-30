@@ -2,7 +2,8 @@ import csv
 import os
 from app.config import Config
 from datetime import datetime
-
+import requests
+from requests.auth import HTTPBasicAuth
 def find_similar_changes(description):
     """
     Searches for successful closed changes that match the description.
