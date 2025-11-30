@@ -199,7 +199,7 @@ def search_templates_with_rag(query):
                     row_data[key.strip()] = val.strip()
             
             results.append({
-                "sys_id": row_data.get('template_number', 'Unknown'),
+                "sys_id": row_data.get('sys_id') or row_data.get('template_number', 'Unknown'),
                 "name": row_data.get('Name', 'Unknown'),
                 "short_description": row_data.get('Short_description', ''),
                 "template": f"application={row_data.get('Application', '')}^implementation_plan={row_data.get('Implementation_plan', '')}",
