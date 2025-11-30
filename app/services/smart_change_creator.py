@@ -163,8 +163,10 @@ def create_change_request(template_ticket, start_date, end_date, assigned_to="Un
             "category": template_ticket.get('category'),
             "start_date": start_date,
             "end_date": end_date,
-            "assigned_to": assigned_to
-            # Add other fields as needed
+            "assigned_to": assigned_to,
+            "implementation_plan": template_ticket.get('implementation_plan', ''),
+            "backout_plan": template_ticket.get('backout_plan', ''),
+            "test_plan": template_ticket.get('test_plan', '')
         }
         
         headers = {"Accept": "application/json", "Content-Type": "application/json"}
@@ -178,9 +180,52 @@ def create_change_request(template_ticket, start_date, end_date, assigned_to="Un
         print(f"Creation Failed: {response.text}")
         return None
 
+        return None
+
     except Exception as e:
         print(f"Smart Change Creation Error: {e}")
         return None
+
+def update_change_request(ticket_number, updates):
+    """
+    Updates an existing change request.
+    """
+    INSTANCE = Config.SERVICENOW_INSTANCE
+    USER = Config.SERVICENOW_USER
+    PASSWORD = Config.SERVICENOW_PASSWORD
+
+    try:
+        # First get sys_id
+        url = f"{INSTANCE}/api/now/table/change_request"
+        params = {
+            "sysparm_query": f"number={ticket_number}",
+            "sysparm_fields": "sys_id"
+        }
+        response = requests.get(url, auth=HTTPBasicAuth(USER, PASSWORD), params=params)
+        sys_id = None
+        if response.status_code == 200:
+            results = response.json().get('result', [])
+            if results:
+                sys_id = results[0]['sys_id']
+        
+        if not sys_id:
+            print(f"Could not find sys_id for {ticket_number}")
+            return False
+
+        # Now update
+        update_url = f"{INSTANCE}/api/now/table/change_request/{sys_id}"
+        headers = {"Accept": "application/json", "Content-Type": "application/json"}
+        response = requests.put(update_url, auth=HTTPBasicAuth(USER, PASSWORD), json=updates, headers=headers)
+        
+        if response.status_code == 200:
+            return True
+        else:
+            print(f"Update Failed: {response.text}")
+            return False
+
+    except Exception as e:
+        print(f"Smart Change Update Error: {e}")
+        return False
 
 def search_templates_from_csv(keyword):
     """
