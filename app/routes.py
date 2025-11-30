@@ -91,16 +91,8 @@ def ask_question():
     intent = rag_service.classify_intent(question, chat_history)
     print(f"DEBUG: Detected Intent: {intent}")
 
-    # --- KEYWORD OVERRIDES ---
-    # Fallback: If intent is GENERAL_QUERY but 'template' is in the query, force TEMPLATE_LOOKUP
-    if intent == "GENERAL_QUERY" and "template" in lower_q:
-        intent = "TEMPLATE_LOOKUP"
-        print(f"DEBUG: Override Intent to TEMPLATE_LOOKUP (Keyword Match)")
-
-    # Override: If user explicitly asks to "list" changes, force SCHEDULE_QUERY (avoid SHOW_STATS)
-    if "list" in lower_q and "change" in lower_q:
-        intent = "SCHEDULE_QUERY"
-        print(f"DEBUG: Override Intent to SCHEDULE_QUERY (Keyword Match: 'list' + 'change')")
+    # --- KEYWORD OVERRIDES REMOVED ---
+    # Relying solely on LLM classification as per user request.
 
     # 1. Ticket Status Lookup
     if intent == "TICKET_STATUS":

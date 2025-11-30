@@ -330,7 +330,8 @@ def classify_intent(query, chat_history=None):
         "8. SHOW_STATS: User asks for charts, statistics, metrics, trends, or breakdowns.\n"
         "9. AUDIT_EMERGENCY: User wants to audit or analyze emergency changes for compliance.\n"
         "10. VALIDATE_EMERGENCY: User wants to validate if a change qualifies as emergency.\n"
-        "11. TEMPLATE_LOOKUP: User is asking for a template, standard change, or recommendation for a specific change activity (e.g., 'template for oracle', 'standard change for patching').\n"
+        "11. TEMPLATE_LOOKUP: User is asking for a template, standard change, or recommendation for a specific change activity (e.g., 'template for oracle', 'standard change for patching', 'I am planning to patch my device', 'I want to upgrade server').\n"
+        "    - NOTE: If user says 'I am planning to...' or 'I want to...', it is likely TEMPLATE_LOOKUP or CREATE_CHANGE, NOT SCHEDULE_QUERY.\n"
         "12. GENERAL_QUERY: General questions, definitions, 'how-to' questions, greetings, or anything else.\n\n"
         
         "OUTPUT RULE: Return ONLY the category name (e.g., 'TICKET_STATUS'). Do not add any explanation."
