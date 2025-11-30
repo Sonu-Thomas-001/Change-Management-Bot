@@ -184,10 +184,17 @@ def extract_keywords(query):
         "show", "me", "changes", "change", "requests", "tickets", "list", "get", "find",
         "planned", "scheduled", "upcoming", "completed", "closed", "for", "the", "in", "on", "at", "from", "all",
         "today", "tomorrow", "weekend", "week", "month", "year", "next", "last", "this", "previous",
-        "days", "weeks", "months", "years"
+        "days", "weeks", "months", "years", "what", "are", "is", "do", "does", "did", "can", "could", "would",
+        "will", "have", "has", "had", "of", "to", "a", "an", "and", "or", "but", "about"
     ]
     
-    words = query.lower().split()
+    # Remove punctuation and split
+    import string
+    query = query.lower()
+    for char in string.punctuation:
+        query = query.replace(char, ' ')
+        
+    words = query.split()
     keywords = [w for w in words if w not in stop_words and len(w) > 2]
     return keywords
 
