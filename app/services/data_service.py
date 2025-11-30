@@ -323,7 +323,7 @@ def get_pending_approvals():
         params = {
             "sysparm_query": f"approver={user_sys_id}^state=requested",
             "sysparm_display_value": "true",
-            "sysparm_fields": "sysapproval.number,sysapproval.short_description,state,sys_created_on,sysapproval.priority,sysapproval.risk,sysapproval.start_date",
+            "sysparm_fields": "sysapproval.number,sysapproval.short_description,state,sys_created_on,sysapproval.priority,sysapproval.risk,sysapproval.start_date,sysapproval.category,sysapproval.type",
             "sysparm_limit": 20
         }
         
@@ -349,6 +349,8 @@ def get_pending_approvals():
                                 <th>Priority</th>
                                 <th>Risk</th>
                                 <th>Start Date</th>
+                                <th>Category</th>
+                                <th>Type</th>
                                 <th>State</th>
                                 <th>Action</th>
                             </tr>
@@ -362,6 +364,8 @@ def get_pending_approvals():
                 priority = approval.get('sysapproval.priority', 'N/A')
                 risk = approval.get('sysapproval.risk', 'N/A')
                 start_date = approval.get('sysapproval.start_date', 'N/A')
+                category = approval.get('sysapproval.category', 'N/A')
+                chg_type = approval.get('sysapproval.type', 'N/A')
                 state = approval.get('state', 'N/A')
                 
                 table_html += f'''
@@ -371,6 +375,8 @@ def get_pending_approvals():
                                 <td>{priority}</td>
                                 <td>{risk}</td>
                                 <td>{start_date}</td>
+                                <td>{category}</td>
+                                <td>{chg_type}</td>
                                 <td><span class="state-badge">{state}</span></td>
                                 <td><button class="view-btn" onclick="window.open('{INSTANCE}/sysapproval_approver.do?sysparm_query=sysapproval.number={number}', '_blank')">View</button></td>
                             </tr>
@@ -461,7 +467,6 @@ def get_pending_tasks():
                             <th>Description</th>
                             <th>State</th>
                             <th>Priority</th>
-                            <th>Due Date</th>
                             <th>Action</th>
                         </tr>
                     </thead>
@@ -482,7 +487,6 @@ def get_pending_tasks():
                             <td>{task['short_description']}</td>
                             <td><span class="state-badge {state_class}">{task['state']}</span></td>
                             <td><span class="priority-badge priority-{task['priority'].split()[0]}">{task['priority']}</span></td>
-                            <td>{task['due_date']}</td>
                             <td><button class="view-btn" onclick="window.open('#{task['number']}', '_blank')">View</button></td>
                         </tr>
             '''
@@ -536,7 +540,7 @@ def get_pending_tasks():
         params = {
             "sysparm_query": f"assigned_to={user_sys_id}^active=true^state!=3^state!=4^state!=7",
             "sysparm_display_value": "true",
-            "sysparm_fields": "number,short_description,state,priority,opened_at,due_date",
+            "sysparm_fields": "number,short_description,state,priority,opened_at",
             "sysparm_limit": 20,
             "sysparm_order_by": "priority"
         }
@@ -562,7 +566,6 @@ def get_pending_tasks():
                                 <th>Description</th>
                                 <th>State</th>
                                 <th>Priority</th>
-                                <th>Due Date</th>
                                 <th>Action</th>
                             </tr>
                         </thead>
@@ -589,7 +592,6 @@ def get_pending_tasks():
                                 <td>{desc}</td>
                                 <td><span class="state-badge {state_class}">{state}</span></td>
                                 <td><span class="priority-badge">{priority}</span></td>
-                                <td>{due_date}</td>
                                 <td><button class="view-btn" onclick="window.open('{INSTANCE}/sc_task.do?sysparm_query=number={number}', '_blank')">View</button></td>
                             </tr>
                 '''
