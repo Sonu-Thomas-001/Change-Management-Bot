@@ -321,7 +321,7 @@ def classify_intent(query, chat_history=None):
         "Classify the user's query into EXACTLY ONE of the following categories:\n\n"
         
         "1. TICKET_STATUS: User wants to check the status or details of a specific ticket (e.g., 'Status of CR-123', 'Check CHG999').\n"
-        "2. CREATE_CHANGE: User wants to create, raise, or draft a new change request.\n"
+        "2. CREATE_CHANGE: User explicitly wants to create, raise, or draft a new change request (e.g., 'Create a change request', 'Raise a new ticket', 'Draft a change for...', 'Find similar changes for...').\n"
         "3. PENDING_APPROVALS: User asks about their pending approvals or approvals they need to action.\n"
         "4. PENDING_TASKS: User asks about their assigned tasks or work.\n"
         "5. DRAFT_EMAIL: User wants to draft an email, communication, or notification.\n"
@@ -330,8 +330,9 @@ def classify_intent(query, chat_history=None):
         "8. SHOW_STATS: User asks for charts, statistics, metrics, trends, or breakdowns.\n"
         "9. AUDIT_EMERGENCY: User wants to audit or analyze emergency changes for compliance.\n"
         "10. VALIDATE_EMERGENCY: User wants to validate if a change qualifies as emergency.\n"
-        "11. TEMPLATE_LOOKUP: User is asking for a template, standard change, or recommendation for a specific change activity (e.g., 'template for oracle', 'standard change for patching', 'I am planning to patch my device', 'I want to upgrade server').\n"
-        "    - NOTE: If user says 'I am planning to...' or 'I want to...', it is likely TEMPLATE_LOOKUP or CREATE_CHANGE, NOT SCHEDULE_QUERY.\n"
+        "11. TEMPLATE_LOOKUP: User is asking for a template, standard change, or recommendation for a specific activity, OR stating an intent to perform an activity without explicitly asking to create a ticket (e.g., 'template for oracle', 'standard change for patching', 'I need to patch my device', 'I am planning a deployment').\n"
+        "    - RULE: If user says 'Create change...', classify as CREATE_CHANGE.\n"
+        "    - RULE: If user says 'I need to [activity]' or 'Template for [activity]', classify as TEMPLATE_LOOKUP.\n"
         "12. GENERAL_QUERY: General questions, definitions, 'how-to' questions, greetings, or anything else.\n\n"
         
         "OUTPUT RULE: Return ONLY the category name (e.g., 'TICKET_STATUS'). Do not add any explanation."

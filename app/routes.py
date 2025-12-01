@@ -146,10 +146,36 @@ def ask_question():
             else:
                  return jsonify({"answer": "❌ Failed to create cloned ticket."})
 
-        # Otherwise, search for suggestions
-        from app.services.smart_change_creator import find_similar_changes
-        suggestion = find_similar_changes(question)
+        suggestion = None
         
+        # Check if user explicitly chose "Find similar changes" (The "Sample Change" path)
+        if "find similar changes" in lower_q or "search similar changes" in lower_q:
+             from app.services.smart_change_creator import find_similar_changes
+             suggestion = find_similar_changes(question)
+        
+        # If generic "Create change" request, ask for preference (Sample vs Template)
+        else:
+            # Extract topic for the buttons
+            topic = question
+            for prefix in ["create a change request for", "create change request for", "create a change for", "create change for", "create ticket for", "draft a change for"]:
+                if prefix in lower_q:
+                    topic = question[lower_q.find(prefix) + len(prefix):].strip()
+                    break
+            
+            # If topic is empty or just punctuation, fallback to generic
+            if not topic or len(topic) < 2:
+                topic = "your activity"
+
+            return jsonify({
+                "answer": f"""To help you create a change for **{topic}**, would you like to look for a **sample change** to clone, or find a **template**?
+                <div style="margin-top: 10px;">
+                    <button onclick="document.getElementById('user-input').value='Find similar changes for {topic}'; document.getElementById('user-input').focus();" style='background-color: #10b981; color: white; border: none; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 13px; margin-right: 8px; margin-top: 8px; transition: all 0.2s; box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2);'>Sample Change</button>
+                    <button onclick="document.getElementById('user-input').value='Find template for {topic}'; document.getElementById('user-input').focus();" style='background-color: #3b82f6; color: white; border: none; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 13px; margin-right: 8px; margin-top: 8px; transition: all 0.2s; box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);'>Suggest Template</button>
+                </div>
+                """
+            })
+
+        # Proceed with finding similar changes (if that path was chosen)
         if suggestion:
             from app.config import Config
             INSTANCE = Config.SERVICENOW_INSTANCE
