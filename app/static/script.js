@@ -20,14 +20,22 @@ document.addEventListener('DOMContentLoaded', () => {
     if (exportPdfBtn) {
         exportPdfBtn.addEventListener('click', () => {
             const element = document.getElementById('chat-box');
+            element.classList.add('pdf-export-mode');
+
             const opt = {
                 margin: 10,
                 filename: 'ChangeAssistant_ChatHistory.pdf',
                 image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, logging: true },
+                html2canvas: { scale: 2, logging: true, useCORS: true },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
-            html2pdf().set(opt).from(element).save();
+
+            html2pdf().set(opt).from(element).save().then(() => {
+                element.classList.remove('pdf-export-mode');
+            }).catch(err => {
+                console.error(err);
+                element.classList.remove('pdf-export-mode');
+            });
         });
     }
 
