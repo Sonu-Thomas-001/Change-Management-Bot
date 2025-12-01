@@ -1,4 +1,4 @@
-# � Futura.ai Chatbot Test Guide
+# 🤖 Futura.ai Chatbot Test Guide
 
 This document provides a structured guide for testing the features of the Futura.ai Change Management Bot.
 
@@ -46,8 +46,8 @@ This document provides a structured guide for testing the features of the Futura
 ## 5. Ticket Status & Quality
 **Objective**: Verify retrieval of ticket details, approvals, and quality checks.
 
-### a. Change Request Status
-*   **Test 1**: "Check the status of CHG0000001."
+### a. Change Request Status (Insightful View)
+*   **Test 1**: "Check the status of CHG0000001." (Expect: Detailed view with SLA, Risk, Approvers)
 *   **Test 2**: "What is the current state of my last created ticket?"
 *   **Test 3**: "Show details for CHG0000002."
 
@@ -70,6 +70,16 @@ This document provides a structured guide for testing the features of the Futura
 *   **Test 1**: "Analyze the risk for this change: 'Rebooting the core production switch during business hours'."
 *   **Test 2**: "What is the risk level for 'Updating the employee cafeteria menu'?"
 *   **Test 3**: "Identify potential risks for 'Migrating the primary database to the cloud'."
+
+## 6. Emergency Change Management
+**Objective**: Verify validation and auditing of emergency changes.
+
+### a. Emergency Validator
+*   **Test 1**: "Validate emergency change for server crash." (Expect: Validation result based on criteria)
+*   **Test 2**: "Is 'routine patching' an emergency change?" (Expect: Rejection/Advice to use Normal change)
+
+### b. Emergency Auditor
+*   **Test 1**: "Audit emergency changes." (Expect: List of recent emergency changes with compliance status)
 
 ## 7. Monthly Change Trend Chart
 **Objective**: Verify the bot can generate trend analysis charts.
@@ -124,21 +134,27 @@ This document provides a structured guide for testing the features of the Futura
 *   **Test 2**: "Great job, that was exactly what I needed!" (Expect: Positive acknowledgement)
 *   **Test 3**: "This is confusing and annoying." (Expect: Apologetic, offer of assistance)
 
-## 13. Voice Input
+## 13. Feedback & Escalation
+**Objective**: Verify user feedback and escalation mechanisms.
+
+*   **Test 1**: "I want to give feedback." (Expect: Prompt for feedback details)
+*   **Test 2**: "Escalate this to a manager." (Expect: Confirmation of escalation and logging)
+
+## 14. Voice Input
 **Objective**: Verify the microphone input functionality.
 
 *   **Test 1**: Click the Microphone icon and say: "Show my pending tasks."
 *   **Test 2**: Click the Microphone icon and say: "Create a change for server reboot."
 *   **Test 3**: Click the Microphone icon and say: "What is the status of CHG0000001?"
 
-## 14. Export Chat
+## 15. Export Chat
 **Objective**: Verify the ability to save the conversation.
 
 *   **Test 1**: Click the "Export Chat" (or similar) button in the UI.
 *   **Test 2**: "Export this conversation to PDF/Text."
 *   **Test 3**: Verify the downloaded file contains the full chat history.
 
-## 15. Clear History
+## 16. Clear History
 **Objective**: Verify the ability to reset the conversation.
 
 *   **Test 1**: Click the "Clear History" (Trash icon) button.
