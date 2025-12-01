@@ -7,30 +7,6 @@
 ### 🎯 Mission
 Streamline change management processes by providing instant access to SOPs, automating routine tasks, and delivering intelligent insights—all through natural conversation.
 
-### 🏗️ Architecture
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                      FuturaAI ChatBot                       │
-├─────────────────────────────────────────────────────────────┤
-│  Frontend (HTML/CSS/JS)                                     │
-│  ├─ Chat Interface                                          │
-│  ├─ Analytics Dashboard                                     │
-│  └─ Voice Input & Dark Mode                                 │
-├─────────────────────────────────────────────────────────────┤
-│  Backend (Flask + Python)                                   │
-│  ├─ RAG Service (Google Gemini + FAISS Vector DB)          │
-│  ├─ Intent Router (Multi-Language, Email, Charts)          │
-│  ├─ ServiceNow Integration (REST API)                      │
-│  └─ Session Management & Authentication                     │
-├─────────────────────────────────────────────────────────────┤
-│  Data Layer                                                 │
-│  ├─ SOP Documents (PDF → Vector Embeddings)                │
-│  ├─ ServiceNow (Live Ticket Data)                          │
-│  └─ Mock Data (Fallback for Demo)                          │
-└─────────────────────────────────────────────────────────────┘
-```
-
 ### 🚀 Key Capabilities
 
 1. **Intelligent Q&A**: Answers questions using your organization's SOPs and policies
@@ -44,7 +20,7 @@ Streamline change management processes by providing instant access to SOPs, auto
 
 ---
 
-## 🌟 Complete Feature List (24 Features)
+## 🌟 Complete Feature List (27 Features)
 
 ### 1. Q&A (General Knowledge)
 **Description**: Ask anything about change management processes, policies, or SOPs. The bot retrieves answers from your knowledge base using advanced RAG technology.
@@ -102,16 +78,20 @@ Streamline change management processes by providing instant access to SOPs, auto
 
 ---
 
-### 5. Create Ticket (Smart Change Creation)
-**Description**: Create new Change Requests via conversation.
+### 5. Smart Change Creation (Clone & Templates) ⭐ UPGRADED
+**Description**: Intelligent assistance to create new Change Requests using past successful changes or templates.
 
-**How It Works**:
-- You: "Create a change request for server upgrade"
-- Bot: Asks for details (impact, risk) → Creates CR in ServiceNow
+**Two Powerful Modes**:
+1.  **Smart Clone**: Finds a similar *successful* past change and clones it.
+    *   *You:* "Create a change for Oracle patching"
+    *   *Bot:* "I found a successful past change (CHG0099). Would you like to clone it?"
+2.  **Template Suggestion**: Uses AI to find the best standard template.
+    *   *You:* "I need a template for server reboot"
+    *   *Bot:* "Here is the 'Windows Server Reboot' template. Click to use."
 
 **Output**: 
-- ✅ "Successfully created draft Change Request **CR-2345**."
-- Displays description, impact, and risk
+- ✅ Creates a draft Change Request in ServiceNow.
+- Displays the new ticket number and details.
 
 ---
 
@@ -297,18 +277,14 @@ Streamline change management processes by providing instant access to SOPs, auto
 **Why It Matters**: Improves user satisfaction during high-stress situations.
 
 ---
+### 21. Feedback & Escalation ⭐ NEW
+**Description**: Submit feedback or escalate complex issues to a human manager.
 
-### 21. Dark Mode Toggle
-**Description**: Switch between light and dark themes.
-
-**How to Use**:
-- Click "🌙 Dark Mode" button in header
-- Theme persists across sessions (saved in localStorage)
-
-**Why It Matters**: Reduces eye strain, improves accessibility.
+**How It Works**:
+- **Feedback**: "I want to give feedback" -> Bot logs thumbs up/down and comments.
+- **Escalation**: "Escalate this to a manager" -> Bot logs the chat history and notifies the Change Manager.
 
 ---
-
 ### 22. Login & Authentication
 **Description**: Secure, role-based access control.
 
@@ -356,8 +332,8 @@ Streamline change management processes by providing instant access to SOPs, auto
 |-----------|-----------|
 | **Frontend** | HTML5, CSS3 (Vanilla), JavaScript (ES6+) |
 | **Backend** | Python 3.x, Flask |
-| **LLM** | Google Gemini (gemini-1.5-flash) |
-| **Vector DB** | FAISS (Facebook AI Similarity Search) |
+| **LLM** | Google Gemini (gemini-2.5-flash) |
+| **Vector DB** | ChromaDB (Local Vector Store) |
 | **Embeddings** | GoogleGenerativeAIEmbeddings |
 | **ServiceNow** | REST API Integration |
 | **Charts** | Chart.js |
@@ -422,42 +398,6 @@ The bot learns from:
 1. **SOP Documents** (PDF): Uploaded to `app/knowledge/`
 2. **ServiceNow Data**: Live ticket info via API
 3. **Hardcoded Policies**: Blackout dates, SLA rules
-
----
-
-## 🚀 Getting Started
-
-### 1. Installation
-```bash
-pip install -r requirements.txt
-```
-
-### 2. Configuration
-Create `.env` file:
-```
-GOOGLE_API_KEY=your_gemini_api_key
-SERVICENOW_INSTANCE=https://dev12345.service-now.com
-SERVICENOW_USER=your_username
-SERVICENOW_PASSWORD=your_password
-```
-
-### 3. Run
-```bash
-python run.py
-```
-
-### 4. Access
-Open browser: `http://localhost:5000`
-
----
-
-## 🧪 Testing
-
-See **TEST_GUIDE.md** for:
-- 5 test questions per feature (120+ total)
-- Expected outputs
-- Edge cases
-- Testing checklist
 
 ---
 
