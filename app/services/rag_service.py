@@ -376,9 +376,30 @@ def recommend_template(query, templates, keywords=None):
         return {"answer": "I couldn't find any relevant templates for your request."}
 
     # Fetch recent changes for reference
+    # Fetch recent changes for reference
     recent_changes = []
-    if keywords:
-        recent_changes = get_recent_changes_by_keyword(keywords, limit=10)
+    
+    # Extract a specific search term from the query using LLM
+    search_term = query
+    try:
+        if llm:
+            extraction_prompt = (
+                f"Analyze the user query: '{query}'\n"
+                "Identify the single most relevant technical keyword or activity to search for similar Change Requests in ServiceNow.\n"
+                "Examples:\n"
+                "- 'I need to patch my device' -> 'patch'\n"
+                "- 'Update the firewall rules' -> 'firewall'\n"
+                "- 'Deploy new application' -> 'deploy'\n"
+                "- 'Reboot the server' -> 'reboot'\n"
+                "Return ONLY the keyword, nothing else."
+            )
+            search_term = llm.invoke(extraction_prompt).content.strip()
+            # print(f"DEBUG: Extracted Search Term: {search_term}")
+    except Exception as e:
+        print(f"Keyword Extraction Error: {e}")
+
+    if search_term:
+        recent_changes = get_recent_changes_by_keyword(search_term, limit=10)
     
     reference_section_str = ""
     if recent_changes:
