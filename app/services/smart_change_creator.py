@@ -318,7 +318,7 @@ def find_relevant_templates(query):
         
         params = {
             "sysparm_query": sn_query,
-            "sysparm_limit": 5,
+            "sysparm_limit": 20,
             "sysparm_fields": "sys_id,name,short_description,template",
             "sysparm_display_value": "true"
         }

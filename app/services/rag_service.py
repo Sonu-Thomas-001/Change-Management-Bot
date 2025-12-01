@@ -419,7 +419,15 @@ def recommend_template(query, templates, keywords=None):
     prompt += (
         "   - **CRITICAL RULE**: If the user's query is broad (e.g., 'patch my device', 'update server', 'fix database') and matches multiple different types of templates (e.g., Windows vs Linux, Oracle vs SQL), you **MUST** ask a clarifying question.\n"
         "   - **DO NOT** list templates if the query is ambiguous. Ask the question instead.\n"
-        "   - **Output**: Return ONLY the clarifying question.\n"
+        "   - **INTERACTIVE OPTIONS**: Along with the question, provide clickable buttons for **ALL** distinct options found. **Do not limit the number of buttons.** If there are 10 distinct options, show 10 buttons. **These options MUST be derived from the templates you found.**\n"
+        "   - **Instruction Text**: Before the buttons, add this exact sentence followed by a line break: \"Here are some suggestions, please click a button below to proceed:<br>\"\n"
+        "   - **Button Format**: Use the following HTML format for each option. **DO NOT use markdown bullets or lists for these options.** Output the raw HTML directly.\n"
+        "     `<button onclick=\"document.getElementById('user-input').value='[Option Text]'; document.getElementById('user-input').focus();\" style='background-color: #10b981; color: white; border: none; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 13px; margin-right: 8px; margin-top: 8px; transition: all 0.2s; box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2);'>[Option Text]</button>`\n"
+        "   - **Example Output**:\n"
+        "     Which device would you like to patch?\n"
+        "     Here are some suggestions, please click a button below to proceed:\n"
+        "     <button ...>Windows Server</button> <button ...>Linux Server</button>\n"
+        "   - **Output**: Return the clarifying question, followed by the instruction text, followed by the HTML buttons.\n"
         "3. If no clarification is needed (or user already specified), list ALL relevant templates found (up to 10).\n"
         "4. If listing templates, format them EXACTLY as follows:\n"
     )
