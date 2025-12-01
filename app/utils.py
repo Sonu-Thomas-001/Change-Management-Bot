@@ -24,7 +24,7 @@ def check_schedule_conflict(user_input):
     
     # Pattern 2: Month DD, YYYY
     if not proposed_date:
-        match = re.search(r'(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2}),?\s+(\d{4})', user_input, re.IGNORECASE)
+        match = re.search(r'(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2})(?:st|nd|rd|th)?,?\s+(\d{4})', user_input, re.IGNORECASE)
         if match:
             try:
                 date_str = f"{match.group(1)} {match.group(2)}, {match.group(3)}"
@@ -33,11 +33,28 @@ def check_schedule_conflict(user_input):
     
     # Pattern 3: DD Month YYYY
     if not proposed_date:
-        match = re.search(r'(\d{1,2})\s+(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{4})', user_input, re.IGNORECASE)
+        match = re.search(r'(\d{1,2})(?:st|nd|rd|th)?\s+(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{4})', user_input, re.IGNORECASE)
         if match:
             try:
                 date_str = f"{match.group(1)} {match.group(2)} {match.group(3)}"
                 proposed_date = datetime.strptime(date_str, "%d %B %Y")
+            except: pass
+
+    # Pattern 4: Month DD (No Year) - Assume current or next year
+    if not proposed_date:
+        match = re.search(r'(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2})(?:st|nd|rd|th)?', user_input, re.IGNORECASE)
+        if match:
+            try:
+                current_year = datetime.now().year
+                date_str = f"{match.group(1)} {match.group(2)}, {current_year}"
+                temp_date = datetime.strptime(date_str, "%B %d, %Y")
+                
+                # If date is in the past (more than 30 days ago), assume next year
+                if temp_date < datetime.now() - timedelta(days=30):
+                    date_str = f"{match.group(1)} {match.group(2)}, {current_year + 1}"
+                    proposed_date = datetime.strptime(date_str, "%B %d, %Y")
+                else:
+                    proposed_date = temp_date
             except: pass
     
     if not proposed_date:
