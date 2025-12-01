@@ -415,19 +415,20 @@ def recommend_template(query, templates, keywords=None):
         "2. **CLARIFICATION CHECK**: \n"
         "   - Analyze the found templates. Do they cover multiple **distinct** options (e.g., different Databases, OS versions, Applications, or specific Activities)?\n"
         "   - Analyze the User Query. Did the user specify the exact type/option they need?\n"
-        "   - **RULE**: IF there are multiple distinct options AND the user's query is broad/ambiguous -> **YOU MUST ASK A CLARIFYING QUESTION** to narrow it down.\n"
-        "   - **Goal**: Get the specific details (e.g., 'Which database?', 'Which OS?', 'What specific activity?') to provide the most accurate template.\n"
+    )
+    prompt += (
+        "   - **CRITICAL RULE**: If the user's query is broad (e.g., 'patch my device', 'update server', 'fix database') and matches multiple different types of templates (e.g., Windows vs Linux, Oracle vs SQL), you **MUST** ask a clarifying question.\n"
+        "   - **DO NOT** list templates if the query is ambiguous. Ask the question instead.\n"
         "   - **Output**: Return ONLY the clarifying question.\n"
         "3. If no clarification is needed (or user already specified), list ALL relevant templates found (up to 10).\n"
+        "4. If listing templates, format them EXACTLY as follows:\n"
     )
 
     if is_fallback:
         prompt += (
-            "4. **IMPORTANT**: Since only the generic template (ABC00000) was found, you MUST start your response by explicitly stating:\n"
+            "   - **IMPORTANT**: Since only the generic template (ABC00000) was found, you MUST start your response by explicitly stating:\n"
             "   \"I couldn't find any specific matching templates for your request, so I suggest using the generic template below.\"\n"
         )
-    else:
-        prompt += "4. If listing templates, format them EXACTLY as follows:\n"
 
     prompt += (
         "   - **Template Name** (Header) [HTML Button to View in ServiceNow]\n"
