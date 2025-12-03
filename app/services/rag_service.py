@@ -55,7 +55,7 @@ def initialize_rag_chain():
         else:
             print("Warning: Template CSV not found.")
         
-        llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0.3)
+        llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash-lite", temperature=0.3)
 
         contextualize_q_system_prompt = (
             "Given a chat history and the latest user question "
