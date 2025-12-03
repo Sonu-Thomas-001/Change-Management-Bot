@@ -1,0 +1,509 @@
+
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GCP Migration Guide</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #ec4899;
+            --accent: #8b5cf6;
+            --text: #1e293b;
+            --text-light: #64748b;
+            --bg: #f8fafc;
+            --card-bg: rgba(255, 255, 255, 0.9);
+            --code-bg: #1e293b;
+            --border: #e2e8f0;
+        }
+        
+        body {
+            font-family: 'Outfit', sans-serif;
+            font-size: 16px;
+            line-height: 1.7;
+            color: var(--text);
+            background-color: var(--bg);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(236, 72, 153, 0.15) 0px, transparent 50%);
+            background-attachment: fixed;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Header */
+        .header-banner {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
+            background-size: 200% 200%;
+            animation: gradientBG 15s ease infinite;
+            color: white;
+            padding: 80px 20px;
+            text-align: center;
+            margin-bottom: -60px; /* Overlap effect */
+            position: relative;
+            z-index: 1;
+            clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%);
+        }
+        
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .header-banner h1 {
+            margin: 0;
+            font-size: 3rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            border: none;
+            color: white;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header-banner p {
+            margin-top: 15px;
+            font-size: 1.2rem;
+            opacity: 0.95;
+            color: rgba(255,255,255,0.9);
+            font-weight: 300;
+        }
+
+        /* Container */
+        .container {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 0 20px 80px;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Typography */
+        h1, h2, h3, h4 {
+            color: #0f172a;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+            margin-top: 2.5em;
+        }
+        h1 { border-bottom: 2px solid var(--border); padding-bottom: 0.5em; font-size: 2.25em; margin-top: 1em; }
+        h2 { 
+            font-size: 1.8em; 
+            margin-top: 2em; 
+            position: relative; 
+            display: inline-block;
+            background: linear-gradient(120deg, #6366f1 0%, #ec4899 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.8em;
+        }
+        h3 { font-size: 1.4em; color: #334155; margin-top: 1.5em; }
+        
+        p { margin-bottom: 1.5em; color: var(--text-light); font-weight: 400; }
+        
+        a { 
+            color: var(--primary); 
+            text-decoration: none; 
+            font-weight: 600; 
+            border-bottom: 2px solid rgba(99, 102, 241, 0.2);
+            transition: all 0.2s; 
+        }
+        a:hover { 
+            color: var(--primary-dark); 
+            border-bottom-color: var(--primary);
+        }
+
+        /* Cards/Sections */
+        .section-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 24px;
+            padding: 50px;
+            box-shadow: 
+                0 4px 6px -1px rgba(0, 0, 0, 0.05), 
+                0 10px 15px -3px rgba(0, 0, 0, 0.05),
+                0 0 0 1px rgba(255, 255, 255, 0.5) inset;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.6);
+        }
+
+        /* Code Blocks */
+        pre {
+            background-color: var(--code-bg);
+            color: #f1f5f9;
+            padding: 25px;
+            border-radius: 16px;
+            overflow-x: auto;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9em;
+            line-height: 1.6;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            margin: 2em 0;
+            border: 1px solid #334155;
+            position: relative;
+        }
+        pre::before {
+            content: '';
+            display: block;
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #ff5f56;
+            box-shadow: 20px 0 0 #ffbd2e, 40px 0 0 #27c93f;
+        }
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            background-color: rgba(99, 102, 241, 0.1);
+            color: var(--primary-dark);
+            padding: 0.2em 0.5em;
+            border-radius: 6px;
+            font-size: 0.85em;
+            font-weight: 500;
+        }
+        pre code {
+            background-color: transparent;
+            color: inherit;
+            padding: 0;
+            font-size: 1em;
+            font-weight: 400;
+            display: block;
+            margin-top: 10px;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin: 2.5em 0;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border);
+        }
+        th {
+            background-color: #f1f5f9;
+            color: #475569;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border);
+            text-align: left;
+        }
+        td {
+            padding: 16px 24px;
+            background-color: white;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-light);
+            transition: background-color 0.2s;
+        }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background-color: #f8fafc; }
+
+        /* Blockquotes / Alerts */
+        blockquote {
+            border-left: none;
+            background: linear-gradient(to right, rgba(99, 102, 241, 0.1), rgba(236, 72, 153, 0.05));
+            margin: 2em 0;
+            padding: 24px;
+            border-radius: 12px;
+            color: #334155;
+            position: relative;
+            border: 1px solid rgba(99, 102, 241, 0.1);
+        }
+        blockquote::before {
+            content: '💡';
+            font-size: 1.5em;
+            margin-bottom: 10px;
+            display: block;
+        }
+        blockquote p { margin: 0; color: inherit; font-weight: 500; }
+
+        /* Mermaid Diagram Placeholder Styling */
+        .mermaid {
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            text-align: center;
+            margin: 2.5em 0;
+            font-family: monospace;
+            white-space: pre;
+            overflow-x: auto;
+            color: #555;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            margin-top: 80px;
+            padding-top: 30px;
+            border-top: 1px solid rgba(0,0,0,0.05);
+            color: #94a3b8;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+    </style>
+    </head>
+    <body>
+        <div class="header-banner">
+            <h1>GCP Migration Guide</h1>
+            <p>Change Management Chatbot</p>
+        </div>
+        
+        <div class="container">
+            <div class="section-card">
+                <h1 id="master-gcp-migration-guide-change-management-chatbot">Master GCP Migration Guide: Change Management Chatbot</h1>
+<p>This document contains <strong>everything</strong> required to migrate your application to Google Cloud Platform. It includes the architecture, detailed infrastructure setup (with scripts), code changes, and deployment steps.</p>
+<hr />
+<h1 id="architecture">🏗️ Architecture</h1>
+<p>The application moves from a local Flask app to a serverless, cloud-native architecture.</p>
+<pre><code class="language-mermaid">graph TD
+    subgraph GCP [GCP Managed Services]
+        CloudRun[Cloud Run - Flask App]
+        Firestore[Firestore - Logs &amp; Feedback]
+        VertexAI[Vertex AI Vector Search]
+        SecretMgr[Secret Manager]
+    end
+
+    User[User Browser] --&gt;|HTTPS| CloudRun
+    CloudRun --&gt;|Read/Write| Firestore
+    CloudRun --&gt;|Vector Search| VertexAI
+    CloudRun --&gt;|Fetch Keys| SecretMgr
+</code></pre>
+<hr />
+<h1 id="part-1-gcp-infrastructure-setup">PART 1: GCP Infrastructure Setup</h1>
+<p>Perform these steps in the <strong>Google Cloud Console</strong> or <strong>Cloud Shell</strong>.</p>
+<h3 id="1-project-apis">1. Project &amp; APIs</h3>
+<pre><code class="language-bash"># 1. Create Project
+gcloud projects create change-bot-prod --name=&quot;Change Management Bot&quot;
+gcloud config set project change-bot-prod
+
+# 2. Enable APIs
+gcloud services enable run.googleapis.com \
+                       firestore.googleapis.com \
+                       secretmanager.googleapis.com \
+                       aiplatform.googleapis.com \
+                       storage.googleapis.com \
+                       cloudbuild.googleapis.com
+</code></pre>
+<h3 id="2-database-firestore">2. Database (Firestore)</h3>
+<p><em>Replaces local CSV files for logging.</em><br />
+1.  Go to <strong>Firestore</strong> in Console.<br />
+2.  Click <strong>Create Database</strong>.<br />
+3.  Select <strong>Native Mode</strong>.<br />
+4.  Choose Region: <code>us-central1</code>.</p>
+<h3 id="3-vector-search-vertex-ai">3. Vector Search (Vertex AI)</h3>
+<p><em>Replaces local ChromaDB.</em></p>
+<p><strong>Step A: Create Storage Bucket</strong></p>
+<pre><code class="language-bash">gcloud storage buckets create gs://change-bot-vectors-$(gcloud config get-value project) --location=us-central1
+</code></pre>
+<p><strong>Step B: Generate &amp; Upload Initial Data</strong><br />
+Create a script <code>scripts/prepare_vertex_data.py</code> locally to convert your PDFs:</p>
+<pre><code class="language-python">import json
+import os
+from langchain_community.document_loaders import PyPDFDirectoryLoader
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
+
+# Ensure GOOGLE_API_KEY is set in your environment
+# os.environ[&quot;GOOGLE_API_KEY&quot;] = &quot;YOUR_KEY&quot;
+
+def generate_jsonl():
+    print(&quot;Loading PDFs...&quot;)
+    loader = PyPDFDirectoryLoader(&quot;docs&quot;)
+    docs = loader.load()
+
+    splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=100)
+    chunks = splitter.split_documents(docs)
+
+    print(f&quot;Generating embeddings for {len(chunks)} chunks...&quot;)
+    embeddings = GoogleGenerativeAIEmbeddings(model=&quot;models/text-embedding-004&quot;)
+
+    output_file = &quot;vectors.jsonl&quot;
+    with open(output_file, &quot;w&quot;) as f:
+        for i, chunk in enumerate(chunks):
+            vector = embeddings.embed_query(chunk.page_content)
+            record = {&quot;id&quot;: str(i), &quot;embedding&quot;: vector}
+            f.write(json.dumps(record) + &quot;\n&quot;)
+
+    print(f&quot;Done! Saved to {output_file}&quot;)
+
+if __name__ == &quot;__main__&quot;:
+    generate_jsonl()
+</code></pre>
+<p>Run it and upload:</p>
+<pre><code class="language-bash">python scripts/prepare_vertex_data.py
+gcloud storage cp vectors.jsonl gs://change-bot-vectors-$(gcloud config get-value project)/init/
+</code></pre>
+<p><strong>Step C: Create Index &amp; Endpoint</strong><br />
+1.  Go to <strong>Vertex AI &gt; Vector Search</strong>.<br />
+2.  <strong>Create Index</strong>:<br />
+    - Name: <code>change-bot-index</code><br />
+    - Dimensions: <code>768</code><br />
+    - Update Method: <code>Stream Update</code><br />
+3.  <strong>Create Endpoint</strong>: Name it <code>change-bot-endpoint</code>.<br />
+4.  <strong>Deploy Index</strong>: Deploy the index to the endpoint.<br />
+    - <strong>IMPORTANT</strong>: Copy the <code>INDEX_ID</code> and <code>ENDPOINT_ID</code>.</p>
+<h3 id="4-secrets-secret-manager">4. Secrets (Secret Manager)</h3>
+<p><em>Replaces .env file.</em></p>
+<pre><code class="language-bash">echo -n &quot;YOUR_FLASK_SECRET&quot; | gcloud secrets create flask-secret-key --data-file=-
+echo -n &quot;YOUR_GOOGLE_API_KEY&quot; | gcloud secrets create google-api-key --data-file=-
+echo -n &quot;YOUR_SERVICENOW_PASSWORD&quot; | gcloud secrets create servicenow-password --data-file=-
+</code></pre>
+<h3 id="5-permissions-iam">5. Permissions (IAM)</h3>
+<p>Grant the Cloud Run service account access.</p>
+<pre><code class="language-bash">$PN = gcloud projects describe $(gcloud config get-value project) --format=&quot;value(projectNumber)&quot;
+$SA = &quot;$PN-compute@developer.gserviceaccount.com&quot;
+
+gcloud projects add-iam-policy-binding $(gcloud config get-value project) --member=&quot;serviceAccount:$SA&quot; --role=&quot;roles/datastore.user&quot;
+gcloud projects add-iam-policy-binding $(gcloud config get-value project) --member=&quot;serviceAccount:$SA&quot; --role=&quot;roles/aiplatform.user&quot;
+gcloud projects add-iam-policy-binding $(gcloud config get-value project) --member=&quot;serviceAccount:$SA&quot; --role=&quot;roles/secretmanager.secretAccessor&quot;
+</code></pre>
+<hr />
+<h1 id="part-2-code-changes">PART 2: Code Changes</h1>
+<p>Modify your local code to use these services.</p>
+<h3 id="1-requirementstxt">1. <code>requirements.txt</code></h3>
+<p><strong>Action</strong>: Append these lines to the end of the file.</p>
+<pre><code class="language-text">google-cloud-firestore==2.14.0
+google-cloud-secret-manager==2.18.0
+langchain-google-vertexai==0.0.5
+</code></pre>
+<h3 id="2-appserviceslogging_servicepy-firestore">2. <code>app/services/logging_service.py</code> (Firestore)</h3>
+<p><strong>Action</strong>: Replace CSV logging with Firestore.</p>
+<p><strong>A. Imports (Lines 1-5)</strong><br />
+Add <code>from google.cloud import firestore</code> and initialize the client.</p>
+<pre><code class="language-python">import os
+import csv
+import datetime
+from google.cloud import firestore  # [NEW]
+from app.config import Config
+
+# [NEW] Initialize Firestore
+try:
+    db = firestore.Client()
+except:
+    db = None
+</code></pre>
+<p><strong>B. <code>log_interaction</code> (Replace Lines 28-43)</strong></p>
+<pre><code class="language-python">    # ... (keep lines 6-27) ...
+    timestamp = datetime.datetime.now().strftime(&quot;%Y-%m-%d %H:%M:%S&quot;)
+
+    # [REPLACE CSV LOGIC WITH THIS]
+    if db:
+        try:
+            db.collection('query_logs').add({
+                &quot;timestamp&quot;: timestamp,
+                &quot;question&quot;: question,
+                &quot;answer&quot;: answer,
+                &quot;status&quot;: status
+            })
+        except Exception as e:
+            print(f&quot;Firestore Log Error: {e}&quot;)
+</code></pre>
+<p><strong>C. <code>log_feedback</code> (Replace Lines 49-55)</strong></p>
+<pre><code class="language-python">    # ... (keep lines 47-48) ...
+    # [REPLACE CSV LOGIC WITH THIS]
+    if db:
+        try:
+            db.collection('feedback_logs').add({
+                &quot;timestamp&quot;: timestamp,
+                &quot;type&quot;: feedback_type,
+                &quot;message&quot;: message_content
+            })
+        except Exception as e:
+            print(f&quot;Firestore Feedback Error: {e}&quot;)
+</code></pre>
+<p><strong>D. <code>log_escalation</code> (Replace Lines 61-66)</strong></p>
+<pre><code class="language-python">    # ... (keep lines 59-60) ...
+    # [REPLACE CSV LOGIC WITH THIS]
+    if db:
+        try:
+            db.collection('escalation_logs').add({
+                &quot;timestamp&quot;: timestamp,
+                &quot;reason&quot;: reason,
+                &quot;chat_history&quot;: str(chat_history) # Store as string or structured data
+            })
+        except Exception as e:
+            print(f&quot;Firestore Escalation Error: {e}&quot;)
+</code></pre>
+<h3 id="3-appservicesrag_servicepy-vertex-ai">3. <code>app/services/rag_service.py</code> (Vertex AI)</h3>
+<p><strong>Action</strong>: Replace ChromaDB with Vertex AI.</p>
+<p><strong>A. Imports (Lines 1-12)</strong><br />
+Replace <code>from langchain_community.vectorstores import Chroma</code> with:</p>
+<pre><code class="language-python">from langchain_google_vertexai import VectorSearchVectorStore
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
+</code></pre>
+<p><strong>B. <code>initialize_rag_chain</code> (Replace Lines 35-37)</strong></p>
+<pre><code class="language-python">        # ... (keep lines 19-34) ...
+        embeddings = GoogleGenerativeAIEmbeddings(model=&quot;models/text-embedding-004&quot;)
+
+        # [REPLACE CHROMA SETUP WITH THIS]
+        # Use IDs from Part 1, Step 3
+        vectorstore = VectorSearchVectorStore.from_components(
+            project_id=&quot;YOUR_PROJECT_ID&quot;,
+            region=&quot;us-central1&quot;,
+            gcs_bucket_name=&quot;gs://YOUR_BUCKET_NAME&quot;,
+            index_id=&quot;YOUR_INDEX_ID&quot;,     
+            endpoint_id=&quot;YOUR_ENDPOINT_ID&quot;, 
+            embedding=embeddings
+        )
+
+        retriever = vectorstore.as_retriever()
+        # ... (rest of function) ...
+</code></pre>
+<h3 id="4-approutespy-analytics">4. <code>app/routes.py</code> (Analytics)</h3>
+<p><strong>Action</strong>: Update Analytics to read from Firestore instead of CSVs.</p>
+<p><strong><code>analytics</code> function (Replace Lines 360-412)</strong><br />
+Replace the file reading blocks for <code>Config.LOG_FILE</code>, <code>Config.FEEDBACK_FILE</code>, and <code>Config.ESCALATION_FILE</code> with Firestore queries.</p>
+<pre><code class="language-python">    # ... inside analytics() function ...
+
+    # [REPLACE CSV READING LOGIC]
+    if db:
+        # 1. Fetch Query Logs
+        docs = db.collection('query_logs').order_by('timestamp', direction=firestore.Query.DESCENDING).limit(50).stream()
+        for doc in docs:
+            data = doc.to_dict()
+            logs.append(data)
+            # ... (add logic to populate daily_volume, status_counts etc. from 'data') ...
+
+        # 2. Fetch Feedback
+        fb_docs = db.collection('feedback_logs').order_by('timestamp', direction=firestore.Query.DESCENDING).limit(10).stream()
+        for doc in fb_docs:
+            recent_feedback.append(doc.to_dict())
+
+        # 3. Fetch Escalations
+        esc_docs = db.collection('escalation_logs').order_by('timestamp', direction=firestore.Query.DESCENDING).limit(10).stream()
+        for doc in esc_docs:
+            escalations.append(doc.to_dict())
+</code></pre>
+<hr />
+<h1 id="part-3-deploy">PART 3: Deploy</h1>
+<p>Deploy the application to Cloud Run.</p>
+<pre><code class="language-bash">gcloud run deploy change-bot \
+  --source . \
+  --platform managed \
+  --region us-central1 \
+  --allow-unauthenticated \
+  --set-env-vars=&quot;SERVICENOW_INSTANCE=https://your-instance.service-now.com,SERVICENOW_USER=admin&quot; \
+  --set-secrets=&quot;SECRET_KEY=flask-secret-key:latest,GOOGLE_API_KEY=google-api-key:latest,SERVICENOW_PASSWORD=servicenow-password:latest&quot;
+</code></pre>
+            </div>
+            
+            <div class="footer">
+                Generated by DB Change Management Assistant
+            </div>
+        </div>
+    </body>
+    </html>
+    
