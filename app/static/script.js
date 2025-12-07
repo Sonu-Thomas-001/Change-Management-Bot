@@ -313,7 +313,7 @@ document.addEventListener('DOMContentLoaded', () => {
         escBtn.style.padding = '5px 10px';
         escBtn.style.borderRadius = '4px';
         escBtn.style.cursor = 'pointer';
-        escBtn.innerHTML = '⚠️ Escalate to Change Manager';
+        escBtn.innerHTML = '⚠️ Notify Change Manager';
 
         escBtn.onclick = () => escalateChat(escBtn, reason);
 
